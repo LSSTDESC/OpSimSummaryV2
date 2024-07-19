@@ -57,7 +57,7 @@ class SNANA_Simlib():
         header += 'BEGIN LIBGEN\n'
         return header
     
-    def LIBheader(self, LIBID, ra, dec, opsimtable, mwebv=0.0):
+    def LIBheader(self, LIBID, ra, dec, opsimdf, mwebv=0.0):
         """
         Parameters
         ----------
@@ -67,7 +67,7 @@ class SNANA_Simlib():
             ra of the field location
         dec : float, degrees
             dec of the field location
-        opsimtable : `np.array` of `pd.DataFrame`
+        opsimdf : `pd.DataFrame`
             sequence of OpSim observations in above format to find number of
             observations.
         mwebv : float, defaults to 0.0
@@ -77,7 +77,7 @@ class SNANA_Simlib():
             string used to construct `Field: fieldtype` line, if None this
             line is left out.
         """
-        nobs = len(opsimtable)
+        nobs = len(opsimdf)
         # String formatting
         s = '# --------------------------------------------' +'\n' 
         s += 'LIBID: {0:10d}'.format(LIBID) +'\n'
@@ -87,59 +87,27 @@ class SNANA_Simlib():
         s += '#                           CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
         s += '#     MJD      ID*NEXPOSE  FLT GAIN NOISE SKYSIG (pixels)  RATIO  ZPTAVG ZPTERR  MAG' + '\n'
         return s
-        
-    def LIBdata(self, obs):
-        obs = self.formatObs(obs)
-        for ObsID, row in opsimtable.iterrows():
+    
+    def LIBdata(self, opsimdf):
+        lib = ''
+        for ObsID, row in opsimdf.iterrows():
             lst = ['S:',
-                   "{0:5.4f}".format(row.observationStartMJD),
+                   "{0:5.4f}".format(row.expMJD),
                    "{0:10d}*2".format(ObsID),
-                   data['filter'],
+                   row.BAND,
                    "{0:5.2f}".format(1.),                  # CCD Gain
                    "{0:5.2f}".format(0.25),                # CCD Noise
                    "{0:6.2f}".format(row.SKYSIG),          # SKYSIG
                    "{0:4.2f}".format(row.PSF),             # PSF1
                    "{0:4.2f}".format(0.),                  # PSF2
                    "{0:4.3f}".format(0.),                  # PSFRatio
-                   "{0:6.2f}".format(row.ZPTAVG),          # ZPTAVG
+                   "{0:6.2f}".format(row.ZPT),             # ZPTAVG
                    "{0:6.3f}".format(0.005),               # ZPTNoise 
                    "{0:+7.3f}".format(-99.)]               # MAG
-            lib = ' '.join(lst)
+            
+            lib += ' '.join(lst)
             lib += '\n'
         return lib
-    
-    def formatObs(self, obs):
-        opsim_seeing = obs['seeingFwhmEff']
-        
-        # magsky is in units of mag/arcsec^2
-        # opsim_maglim is in units of mag
-        opsim_maglim = obs['fiveSigmaDepth']
-        opsim_magsky = obs['skyBrightness']
-                
-        # COMPUTE SIMLIB PSF VALUE
-        obs['PSF'] = opsim_seeing / 2.35 / self._pixelSize
-        
-        # COMPUTE SIMLIB ZPT
-        opsim_snr = 5.
-        area = (1.51 * opsim_seeing)**2
-        arg = area * opsim_snr**2
-        
-        # Background dominated limit assuming counts with system transmission only
-        # is approximately equal to counts with total transmission
-        zpt_approx = 2.0 * opsim_maglim - opsim_magsky + 2.5 * np.log10(arg)
-        
-        # Additional term to account for photons from the source, again assuming
-        # that counts with system transmission approximately equal counts with total
-        # transmission.
-        tmp = 10.0**(-0.4 * (opsim_magsky - opsim_maglim))
-        zpt_cor = 2.5 * np.log10(1.0 + 1.0 / (area * tmp))
-        
-        obs['ZPTAVG'] =  zpt_approx + zpt_cor
-        
-        # COMPUTE SKYSIG 
-        # npix_asec = 1. / self._pixelSize**2.
-        obs['SKYSIG'] = self._pixelSize * np.sqrt(10.0 **(-0.4 * (opsim_magsky - obs['ZPTAVG'])))
-        return obs
     
     def writeSimlib(self):
         with open(self.output_path, 'w') as simlib_file:

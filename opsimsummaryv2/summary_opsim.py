@@ -8,8 +8,8 @@ from sklearn.neighbors import BallTree
 
 class OpSimSurvey:
     __LSST_FIELD_RADIUS__ = np.radians(1.75)
-    
-    
+    __LSST_pixelSize__ = 0.2
+
     def __init__(self, db_path, table_name="observations", host_file=None, host_config={}):
         self.db_path = Path(db_path)
         self.sql_engine = self._get_sql_engine(db_path)
@@ -145,17 +145,18 @@ class OpSimSurvey:
         self._survey.attrs['survey_area_rad'] = hp.nside2pixarea(self.hp_rep.attrs['nside'], degrees=False) * N_fields
         self._survey.attrs['N_fields'] = N_fields
 
-    def get_survey_obs(self):
+    def get_survey_obs(self, formatobs=True):
         obs_idx = self.tree.query_radius(self.survey[['hp_dec', 'hp_ra']],
                                               r=self.__LSST_FIELD_RADIUS__,
                                               count_only=False,
                                               return_distance=False)
         
         for idx in obs_idx:
-            yield self.opsimdf.iloc[idx]
-        
-        return obs_idx
-    
+            if formatobs:
+                yield self.formatObs(self.opsimdf.iloc[idx])
+            else:
+                yield self.opsimdf.iloc[idx]
+            
     def get_survey_host(self):
         # Cut in 2 circles that intersect edge limits (0, 2PI)
         _SPHERE_LIMIT_LOW_ = shp_geo.LineString([[0, -np.pi / 2],
@@ -187,3 +188,30 @@ class OpSimSurvey:
         survey_host["GROUPID"] = grped_host
         
         return survey_host
+    
+    def formatObs(self, OpSimObs):
+        
+        sigPSF = OpSimObs['seeingFwhmEff'] / (2 * np.sqrt(2 * np.log(2)))
+        
+        # PSF
+        PSF = sigPSF / self.__LSST_pixelSize__
+        
+        # Noise Effective Area
+        NoiseArea = 4 * np.pi * sigPSF**2
+        
+        # ZPT
+        dmag = OpSimObs['fiveSigmaDepth'] - OpSimObs['skyBrightness']
+        
+        ZPT = 2 * OpSimObs['fiveSigmaDepth'] - OpSimObs['skyBrightness']
+        ZPT += 2.5 * np.log10(25 * NoiseArea) 
+        ZPT += 2.5 * np.log10(1 + 10**(-0.4 * dmag) / NoiseArea)
+        
+        # SKYSIG
+        dskymag = OpSimObs['skyBrightness'] - ZPT
+        SKYSIG = np.sqrt(10**(-0.4 * dskymag) * self.__LSST_pixelSize__**2)
+        
+        return pd.DataFrame({'expMJD': OpSimObs['observationStartMJD'],
+                             'PSF': PSF,
+                             'ZPT': ZPT,
+                             'SKYSIG': SKYSIG,
+                             'BAND': OpSimObs['filter']})

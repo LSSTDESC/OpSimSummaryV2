@@ -21,4 +21,4 @@ def format_poly(poly):
     transl_mask = polydiv.boundary.bounds["maxx"] > 2 * np.pi
     polydiv[transl_mask] = polydiv[transl_mask].translate(-2 * np.pi)
     return shp_geo.MultiPolygon(polydiv.values)
-
+    
