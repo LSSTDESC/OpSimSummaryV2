@@ -1,4 +1,5 @@
 import geopandas as gpd
+import numpy as np
 import shapely.geometry as shp_geo
 import shapely.ops as shp_ops
 

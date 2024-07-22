@@ -3,17 +3,19 @@ import geopandas as gpd
 import healpy as hp
 import numpy as np
 import sqlalchemy as sqla
+import shapely.geometry as shp_geo
 from pathlib import Path
 from sklearn.neighbors import BallTree
+from . import utils as ut
 
 class OpSimSurvey:
     __LSST_FIELD_RADIUS__ = np.radians(1.75)
     __LSST_pixelSize__ = 0.2
 
-    def __init__(self, db_path, table_name="observations", host_file=None, host_config={}):
+    def __init__(self, db_path, table_name="observations", MJDrange=None, host_file=None, host_config={}):
         self.db_path = Path(db_path)
         self.sql_engine = self._get_sql_engine(db_path)
-        self.opsimdf = self._get_df_from_sql(self.sql_engine)
+        self.opsimdf = self._get_df_from_sql(self.sql_engine, MJDrange=MJDrange)
         self.opsimdf.attrs['OpSimFile'] = self.db_path.name
 
         self.tree = BallTree(self.opsimdf [['_dec', '_ra']].values,
@@ -56,8 +58,11 @@ class OpSimSurvey:
         return engine
     
     @staticmethod
-    def _get_df_from_sql(sql_engine):
-        df = pd.read_sql('observations', con=sql_engine)
+    def _get_df_from_sql(sql_engine, MJDrange=None):
+        query = 'SELECT * FROM observations'
+        if MJDrange is not None:
+            query += f' WHERE observationStartMJD > {MJDrange[0]} AND observationStartMJD < {MJDrange[1]}'
+        df = pd.read_sql(query, con=sql_engine)
         df['_ra'] = np.radians(df.fieldRA)
         df['_dec'] = np.radians(df.fieldDec)
         df.set_index('observationId', inplace=True)
@@ -66,7 +71,7 @@ class OpSimSurvey:
     def _read_host_file(self, host_file, col_ra='ra', col_dec='dec', ra_dec_unit='radians'):
         if host_file is None:
             print('No host file.')
-            return 
+            return None
         
         print('Reading host from {}'.format(host_file))
 
@@ -83,10 +88,8 @@ class OpSimSurvey:
             hostdf['RA_GAL'] = np.degrees(hostdf['ra'])
             hostdf['DEC_GAL'] = np.degrees(hostdf['dec'])
         
-        return gpd.GeoDataFrame(
-            data=hostdf,
-            geometry=gpd.points_from_xy(hostdf.ra.values, hostdf.dec.values))
-        
+        return hostdf
+            
     def compute_hp_rep(self, nside=256, minVisits=None, maxVisits=None):
         ipix = np.arange(hp.nside2npix(nside))
         hp_ra, hp_dec = np.radians(hp.pix2ang(nside, ipix, lonlat=True))
@@ -157,7 +160,11 @@ class OpSimSurvey:
             else:
                 yield self.opsimdf.iloc[idx]
             
-    def get_survey_host(self):
+    def get_survey_hosts(self):
+        
+        if self.host is None:
+            return None
+    
         # Cut in 2 circles that intersect edge limits (0, 2PI)
         _SPHERE_LIMIT_LOW_ = shp_geo.LineString([[0, -np.pi / 2],
                                                  [0, np.pi / 2]])
@@ -172,11 +179,16 @@ class OpSimSurvey:
         mask = survey_fields.intersects(_SPHERE_LIMIT_LOW_)
         survey_fields[mask] = survey_fields[mask].translate(2 * np.pi)
         mask |= survey_fields.intersects(_SPHERE_LIMIT_HIGH_)
-        survey_fields[mask] = gpd.GeoSeries([op.utils.format_poly(p) for p in survey_fields[mask]])
+        survey_fields[mask] = gpd.GeoSeries([ut.format_poly(p) for p in survey_fields[mask]])
 
         # Select host in circle
-        grped_host = OpSimSurv.host[['geometry']].sjoin(
-            gpd.GeoDataFrame(geometry=FieldPoints), how="inner", predicate="intersects"
+        host_pos =  gpd.GeoDataFrame(
+            index=self.host.index,
+            geometry=gpd.points_from_xy(self.host.ra.values, self.host.dec.values)
+        )
+        
+        grped_host = host_pos.sjoin(
+            gpd.GeoDataFrame(geometry=survey_fields), how="inner", predicate="intersects"
         )
         
         # Create grp id
@@ -184,7 +196,7 @@ class OpSimSurvey:
                                                                     np.random.choice(list(x)))
 
         # Keep only hosts in fields
-        survey_host = OpSimSurv.host.loc[grped_host.index]
+        survey_host = self.host.loc[grped_host.index]
         survey_host["GROUPID"] = grped_host
         
         return survey_host
