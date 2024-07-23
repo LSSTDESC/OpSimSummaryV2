@@ -17,7 +17,7 @@ Additionally, in both cases, please cite the [code paper](https://arxiv.org/abs/
 ## Installation  and Software Requirements
 
 ```
-git clone 
-cd 
+git clone https://github.com/bastiencarreres/OpSimSummaryV2.git
+cd opsimsummaryv2
 pip install .
 ```

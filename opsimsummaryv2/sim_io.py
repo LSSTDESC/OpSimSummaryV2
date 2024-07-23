@@ -6,19 +6,61 @@ import opsimsummaryv2 as oss
 import numpy as np
 
 class SNANA_Simlib():
-    _pixelSize = 0.2
+    """
+    A class to write SNANA simulation output from OpSimSurvey object.
 
-    def __init__(self, OpSimSurvey, output_path, author_name=None):
+    Attributes
+    ----------
+    OpSimSurvey : opsimsummaryv2.summary_opsim.OpSimSurvey
+        The OpSimSurvey object
+    author_name : str, optional
+        The author of the SIMLIB
+    out_path : str, optional
+        The path of the output file, default './'
+    date_time : str
+        The current time, to be written in SIMLIB.
+    """
+    def __init__(self, OpSimSurvey, out_path=None, author_name=None):
         self.OpSimSurvey = OpSimSurvey
         self.author_name = author_name
-        self.output_path = Path(output_path)
+        self.out_path = self._init_out_path(out_path)
         self.date_time = datetime.datetime.now()
         
+    def _init_out_path(self, out_path):
+        """Format output path for SIMLIB and HOSTLIB.
+
+        Parameters
+        ----------
+        out_path : str
+            Output directory or file.
+
+        Returns
+        -------
+        pathlib.Path
+            Path to the output SIMLIB.
+        """        
+        if out_path is None:
+            out_path = './'
+            
+        out_path = Path(out_path)
+        
+        if out_path.is_dir():
+            out_path /= Path(self.OpSimSurvey.opsimdf.attrs['OpSimFile']).stem  + '.SIMLIB'
+        if self.OpSimSurvey.survey_hosts is not None:
+            out_path = out_path.with_stem(f"{out_path.stem}_{Path(self.OpSimSurvey.host.attrs['file']).stem}")
+        return out_path
+    
     def get_survey_doc(self):
+        """Give the DOCUMENTATION string for SIMLIB.
+
+        Returns
+        -------
+        str
+            DOCUMENTATION string
+        """        
         minMJD = self.OpSimSurvey.opsimdf.observationStartMJD.min()
         maxMJD = self.OpSimSurvey.opsimdf.observationStartMJD.max()
         OpSimFile = self.OpSimSurvey.opsimdf.attrs['OpSimFile']
-        
         doc = 'DOCUMENTATION:\n'
         doc += f'    PURPOSE: simulate LSST based on mock opsim version {OpSimFile}\n'
         doc += '    INTENT:   Nominal\n'
@@ -30,6 +72,8 @@ class SNANA_Simlib():
         doc += '        PARAMS MAXMJD: {:.4f}\n'.format(maxMJD)
         doc += '        PARAMS TOTAL_AREA: {:.3f}\n'.format(self.OpSimSurvey.survey.attrs['survey_area_deg'])
         doc += '        PARAMS SOLID_ANGLE: {:.3f}\n'.format(self.OpSimSurvey.survey.attrs['survey_area_rad'])
+        if self.OpSimSurvey.survey_hosts is not None:
+            doc += '        ASSOCIATED HOSTLIB: {}\n'.format(self.out_path.with_suffix('.HOSTLIB').absolute())
         doc += '    VERSIONS:\n'
         doc += f'    - DATE : {self.date_time.strftime(format="%y-%m-%d")}\n'
         doc += f'    AUTHORS : {self.author_name}, OpSimSummaryV2 version {oss.__version__}\n'
@@ -37,6 +81,20 @@ class SNANA_Simlib():
         return doc
     
     def get_survey_header(self, saturation_flag=1024, comments='\n'):
+        """Give the SIMLIB header string.
+
+        Parameters
+        ----------
+        saturation_flag : int, optional
+            The flag corresponding to saturated obs, by default 1024
+        comments : str, optional
+            Comments to add to the header, by default '\n'
+
+        Returns
+        -------
+        str
+            The SIMLIB header string.
+        """        
         try:
             user = os.getlogin()
         except:
@@ -58,32 +116,35 @@ class SNANA_Simlib():
         return header
     
     def LIBheader(self, LIBID, ra, dec, opsimdf, mwebv=0.0, groupID=None):
-        """
+        """Give the string of the header of a LIB entry.
+
         Parameters
         ----------
-        fieldID : int
-            integer for the unique field ID
-        ra : float, degrees
-            ra of the field location
-        dec : float, degrees
-            dec of the field location
-        opsimdf : `pd.DataFrame`
-            sequence of OpSim observations in above format to find number of
-            observations.
-        mwebv : float, defaults to 0.0
-            milky way E(B-v) value. This is usually recomputed in SNANA
-            depending on flags, and hence can be left as 0.0
-        fieldtype : string, defaults to None
-            string used to construct `Field: fieldtype` line, if None this
-            line is left out.
-        """
+        LIBID : int
+            The LIBID of the entry.
+        ra : float
+            RA [deg] coordinate of the entry 
+        dec : float
+            Dec [deg] coordinate of the entry 
+        opsimdf : pandas.DataFrame
+            LIB entry observations
+        mwebv: float, optional
+            MWEBV of the entry, default = 0.0
+        groupID : int, optional
+            GROUPID of the entry used to match with HOSTLIB hosts.
+
+        Returns
+        -------
+        str
+            The LIB entry header string.
+        """     
         nobs = len(opsimdf)
         # String formatting
         s = '# --------------------------------------------' +'\n' 
         s += 'LIBID: {0:10d}'.format(LIBID) +'\n'
         tmp = 'RA: {0:+10.6f} DEC: {1:+10.6f}   NOBS: {2:10d} MWEBV: {3:5.2f}'
         tmp += ' PIXSIZE: {4:5.3f}'
-        s += tmp.format(ra, dec, nobs, mwebv, self._pixelSize) + '\n'
+        s += tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__) + '\n'
         if groupID is not None:
             s += f"HOSTLIB_GROUPID: {groupID}" + "\n"
         s += '#                           CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
@@ -91,6 +152,18 @@ class SNANA_Simlib():
         return s
     
     def LIBdata(self, opsimdf):
+        """Give the string of a LIB entry.
+
+        Parameters
+        ----------
+        opsimdf : pandas.DataFrame
+            LIB entry observations
+
+        Returns
+        -------
+        str
+            The str of the LIB entry.
+        """        
         lib = ''
         opsimdf['BAND'] = opsimdf['BAND'].map(lambda x: x.upper() if x=='y' else x)
         for ObsID, row in opsimdf.iterrows():
@@ -113,75 +186,99 @@ class SNANA_Simlib():
         return lib
     
     def LIBfooter(self, LIBID):
+        """Give the string of a LIB entry footer.
+
+        Parameters
+        ----------
+        LIBID : int
+            The LIBID of the entry
+
+        Returns
+        -------
+        str
+            The string of a LIB entry footer
+        """        
         footer = 'END_LIBID: {0:10d}'.format(LIBID)
         footer += '\n\n'
         return footer
     
-    def writeSimlib(self):
+    def writeSimlib(self, write_batch_size=10, buffer_size=8192):  
+        """write the SIMLIB (and the HOSTLIB) file(s).
         
-        # Get hosts
-        hosts = self.OpSimSurvey.get_survey_hosts()
-        
+        Parameters
+        ----------
+        write_batch_size : int
+            Number of LIBID to write at the same time
+        buffer_size : int
+            buffering option for open() function
+        """              
         tstart = time.time()
-        print('Writing SIMLIB')
-        with open(self.output_path, 'w') as simlib_file:
+        print(f'Writing SIMLIB in {self.out_path}')
+        
+        with open(self.out_path, 'w', buffering=buffer_size) as simlib_file:
             simlib_file.write(self.get_survey_doc())
             simlib_file.write(self.get_survey_header())
+            
+            bcount = 0
+            simlibstr = ''
             for (i, field), obs in zip(self.OpSimSurvey.survey.iterrows(), self.OpSimSurvey.get_survey_obs()):
                 LIBID = i
                 RA = np.degrees(field.hp_ra)
                 DEC = np.degrees(field.hp_dec)
-                if hosts is not None:
+                if self.OpSimSurvey.survey_hosts is not None:
                     groupID = LIBID
                 else:
                     groupID = None
-                simlib_file.write(self.LIBheader(LIBID, RA, DEC, obs, groupID=groupID))
-                simlib_file.write(self.LIBdata(obs))
-                simlib_file.write(self.LIBfooter(LIBID))
+                    
+                simlibstr += self.LIBheader(LIBID, RA, DEC, obs, groupID=groupID)
+                simlibstr += self.LIBdata(obs)
+                simlibstr += self.LIBfooter(LIBID)
                 
-        print(f'SIMLIB write in {time.time() - tstart:.2f} sec.')
+                if not bcount % write_batch_size:
+                    simlib_file.write(simlibstr)
+                    simlibstr = ''
+                    
+                bcount +=1
+                
+            simlib_file.write(simlibstr)
 
-        if host:
-            print('Writing HOSLIB')
-            
+        print(f'SIMLIB wrote in {time.time() - tstart:.2f} sec.\n')
+
+        if self.OpSimSurvey.survey_hosts  is not None:
+            tstart = time.time()
+            print(f"Writting {len(self.OpSimSurvey.survey_hosts)} hosts in {self.out_path.with_suffix('.HOSTLIB')}")
+            self.write_hostlib(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']))
+            print(f"HOSTLIB file wrote in {time.time() - tstart:.2f} sec.")
 
 
-    @np.vectorize
-    def HOSTLIBGalLine(*args):
-        if first:
-            line = "GAL:"
-        else:
-            line = ""
-        line = line + " {}" * len(args)
-        return line.format(*args)
+    def write_hostlib(self, hostdf):
+        """write the HOSLIB file. Called in writeSimlib"""              
 
-    def write_hostlib(self):
         VARNAMES = "VARNAMES:"
-        for k in df.columns:
+        for k in hostdf.columns:
             VARNAMES += f" {k}"
-        df = df.to_records(index=False)
-        print("Writting {} hosts in HOSTLIB file".format(len(df)))
-        hostf = open(filename, 'w')
-        Header = (
-            "DOCUMENTATION:\n"
-            f"PURPOSE: HOSTLIB for LSST based on mock opsim\n"
-            "    VERSIONS:\n"
-            f"    - DATE : {self.date_time}\n"
-            f"    AUTHORS : {self.author_name}\n"
-            "DOCUMENATION_END:\n"
-            "# ========================\n"
-            f"# Z_MIN={hostdf.ZTRUE_CMB.min()} Z_MAX={hostdf.ZTRUE_CMB.max()}\n\n"
-            "VPECERR: 0\n\n"
-            f"{VARNAMES}\n\n\n\n"
-        )
-        hostf.write(Header)
-        
-        line = "GAL: " + "{} " * len(df.dtype)
-        lines = []
-        for i in range(len(df)):
-            lines.append(line.format(*df[i]))
-            if i % 1000 == 0:
-                hostf.write("\n".join(lines) + "\n")
-                lines = []
-        hostf.write("\n".join(lines) + "\n")
-        hostf.close()
+
+        with open(self.out_path.with_suffix('.HOSTLIB'), 'w') as hostf:
+            Header = (
+                "DOCUMENTATION:\n"
+                f"PURPOSE: HOSTLIB for LSST based on mock opsim\n"
+                "    VERSIONS:\n"
+                f"    - DATE : {self.date_time}\n"
+                f"    - ASSOCIATED SIMLIB : {self.out_path.absolute()}\n"
+                f"    AUTHORS : {self.author_name}\n"
+                "DOCUMENATION_END:\n"
+                "# ========================\n"
+                f"# Z_MIN={hostdf.ZTRUE_CMB.min()} Z_MAX={hostdf.ZTRUE_CMB.max()}\n\n"
+                "VPECERR: 0\n\n"
+                f"{VARNAMES}\n\n\n\n"
+            )
+            hostf.write(Header)
+            
+            line = "GAL: " + "{} " * len(hostdf.columns)
+            lines = []
+            for i, row in hostdf.iterrows():
+                lines.append(line.format(*row))
+                if i % 1000 == 0:
+                    hostf.write("\n".join(lines) + "\n")
+                    lines = []
+            hostf.write("\n".join(lines) + "\n")
