@@ -156,7 +156,7 @@ class SNANA_Simlib():
         s += tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__) + '\n'
         if groupID is not None:
             s += f"HOSTLIB_GROUPID: {groupID}" + "\n"
-        s += '#                               CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
+        s += '#                           CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
         s += '#     MJD      ID*NEXPOSE  FLT GAIN NOISE SKYSIG (pixels)  RATIO  ZPTAVG ZPTERR  MAG' + '\n'
         return s
     
@@ -200,7 +200,7 @@ class SNANA_Simlib():
             The string of a LIB entry footer
         """        
         footer = 'END_LIBID: {0:10d}'.format(LIBID)
-        footer += '\n\n'
+        footer += '\n'
         return footer
         
     def get_SIMLIB_footer(self):
