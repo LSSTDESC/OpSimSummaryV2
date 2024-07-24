@@ -118,6 +118,7 @@ class OpSimSurvey:
                 time_format = 'mjd'
             MJDrange = Time(MJDrange, format=time_format)
             query += f' WHERE observationStartMJD > {MJDrange.mjd[0]} AND observationStartMJD < {MJDrange[1].mjd}'
+
         df = pd.read_sql(query, con=sql_engine)
         df['_ra'] = np.radians(df.fieldRA)
         df['_dec'] = np.radians(df.fieldDec)

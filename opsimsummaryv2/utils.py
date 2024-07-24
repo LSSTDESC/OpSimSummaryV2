@@ -82,17 +82,45 @@ def host_joiner(survey_fields, host):
     return survey_host
 
 def dataline(expMJD, ObsID, BAND, CCDgain, CCDnoise, SKYSIG, PSF, ZPT, ZPTNoise):
+    """Write a SIMLIB data line
+
+    Parameters
+    ----------
+    expMJD : float
+        Date of observation in MJD
+    ObsID : int
+        ID of the observation
+    BAND : str
+        Band used for the observation
+    CCDgain : float
+        CCd gain
+    CCDnoise : float
+        CCD noise
+    SKYSIG : float
+        Sky noise error
+    PSF : float
+        Point spread function sigma
+    ZPT : float
+        Zero point
+    ZPTNoise : float
+        Zero point calibration error
+
+    Returns
+    -------
+    str
+        A SIMLIB LIB entry line
+    """    
     l =  ("S: "
         f"{expMJD:5.4f} "
         f"{ObsID:10d}*2 "
         f"{BAND} "
-        f"{CCDgain:5.2f} "       # CCD Gain
-        f"{CCDnoise:5.2f} "      # CCD Noise
+        f"{CCDgain:5.2f} "        # CCD Gain
+        f"{CCDnoise:5.2f} "       # CCD Noise
         f"{SKYSIG:6.2f} "         # SKYSIG
         f"{PSF:4.2f} "            # PSF1
-        f"{0:4.2f} "                  # PSF2
-        f"{0:4.3f} "                  # PSFRatio
+        f"{0:4.2f} "              # PSF2
+        f"{0:4.3f} "              # PSFRatio
         f"{ZPT:6.2f} "            # ZPTAVG
-        f"{ZPTNoise:6.3f} "      # ZPTNoise 
+        f"{ZPTNoise:6.3f} "       # ZPTNoise 
         f"{-99.:+7.3f} ")
     return l

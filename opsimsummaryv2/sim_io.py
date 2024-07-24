@@ -19,7 +19,9 @@ class SNANA_Simlib():
     out_path : str, optional
         The path of the output file, default './'
     date_time : str
-        The current time, to be written in SIMLIB.
+        The current time, to be written in SIMLIB
+    dataline: numpy.vectorize
+        A vectorized function to write SIMLIB dataline
     """
     def __init__(self, OpSimSurvey, out_path=None, author_name=None, ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
         self.OpSimSurvey = OpSimSurvey
@@ -57,7 +59,7 @@ class SNANA_Simlib():
             out_path = out_path.with_stem(f"{out_path.stem}_{Path(self.OpSimSurvey.host.attrs['file']).stem}")
         return out_path
     
-    def get_survey_doc(self):
+    def get_SIMLIB_doc(self):
         """Give the DOCUMENTATION string for SIMLIB.
 
         Returns
@@ -87,7 +89,7 @@ class SNANA_Simlib():
         doc += 'DOCUMENTATION_END:\n'
         return doc
     
-    def get_survey_header(self, saturation_flag=1024, comments='\n'):
+    def get_SIMLIB_header(self, saturation_flag=1024, comments='\n'):
         """Give the SIMLIB header string.
 
         Parameters
@@ -182,7 +184,7 @@ class SNANA_Simlib():
         lib = '\n'.join(self.dataline(opsimdf['expMJD'].values, opsimdf['ObsID'].values, 
                                       opsimdf['BAND'].values,opsimdf['SKYSIG'].values,
                                       opsimdf['PSF'].values, opsimdf['ZPT'].values))
-        return lib
+        return lib + '\n'
     
     def LIBfooter(self, LIBID):
         """Give the string of a LIB entry footer.
@@ -200,8 +202,14 @@ class SNANA_Simlib():
         footer = 'END_LIBID: {0:10d}'.format(LIBID)
         footer += '\n\n'
         return footer
+        
+    def get_SIMLIB_footer(self):
+        """Give SIMLIB footer.
+        """
+        s = 'END_OF_SIMLIB:    {0:10d} ENTRIES'.format(self.OpSimSurvey.survey.attrs['N_fields'])
+        return s
     
-    def writeSimlib(self, write_batch_size=10, buffer_size=8192):  
+    def write_SIMLIB(self, write_batch_size=10, buffer_size=8192):  
         """write the SIMLIB (and the HOSTLIB) file(s).
         
         Parameters
@@ -215,8 +223,8 @@ class SNANA_Simlib():
         print(f'Writing SIMLIB in {self.out_path}')
         
         with open(self.out_path, 'w', buffering=buffer_size) as simlib_file:
-            simlib_file.write(self.get_survey_doc())
-            simlib_file.write(self.get_survey_header())
+            simlib_file.write(self.get_SIMLIB_doc())
+            simlib_file.write(self.get_SIMLIB_header())
             
             bcount = 0
             simlibstr = ''
@@ -240,52 +248,72 @@ class SNANA_Simlib():
                 bcount +=1
                 
             simlib_file.write(simlibstr)
-
+            simlib_file.write(self.get_SIMLIB_footer())
+    
         print(f'SIMLIB wrote in {time.time() - tstart:.2f} sec.\n')
 
-        if self.OpSimSurvey.survey_hosts  is not None:
+        if self.OpSimSurvey.survey_hosts is not None:
             tstart = time.time()
             print(f"Writting {len(self.OpSimSurvey.survey_hosts)} hosts in {self.out_path.with_suffix('.HOSTLIB')}")
-            self.write_hostlib(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']))
+            self.write_hostlib(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']), buffer_size=buffer_size)
             print(f"HOSTLIB file wrote in {time.time() - tstart:.2f} sec.")
 
     def get_HOSTLIB_doc(self):
+        """Give docstring for HOSTLIB file.
+
+        Returns
+        -------
+        str
+            Docstring of the HOSTLIB file
+        """        
         doc = ("DOCUMENTATION:\n"
-        "PURPOSE: HOSTLIB for LSST based on mock opsim\n"
-        "    VERSIONS:\n"
-        f"    - DATE : {self.date_time}\n"
-        f"    - ASSOCIATED SIMLIB : {self.out_path.absolute()}\n"
-        f"    AUTHORS : {self.author_name}\n"
-        "DOCUMENATION_END:\n"
-        
-    def write_hostlib(self, hostdf):
-        """write the HOSLIB file. Called in writeSimlib"""              
-
-        VARNAMES = "VARNAMES:"
-        for k in hostdf.columns:
-            VARNAMES += f" {k}"
-
-        with open(self.out_path.with_suffix('.HOSTLIB'), 'w') as hostf:
-            Header = (
-                "DOCUMENTATION:\n"
-                f"PURPOSE: HOSTLIB for LSST based on mock opsim\n"
+                "PURPOSE: HOSTLIB for LSST based on mock opsim\n"
                 "    VERSIONS:\n"
                 f"    - DATE : {self.date_time}\n"
                 f"    - ASSOCIATED SIMLIB : {self.out_path.absolute()}\n"
                 f"    AUTHORS : {self.author_name}\n"
                 "DOCUMENATION_END:\n"
-                "# ========================\n"
-                f"# Z_MIN={hostdf.ZTRUE_CMB.min()} Z_MAX={hostdf.ZTRUE_CMB.max()}\n\n"
-                "VPECERR: 0\n\n"
-                f"{VARNAMES}\n\n\n\n"
-            )
-            hostf.write(Header)
+                "# ========================\n")
+        return  doc
+
+    def get_HOSTLIB_header(self, hostdf):
+        """Give HOSTLIB header.
+
+        Parameters
+        ----------
+        hostdf : pandas.DataFrame
+            Hosts dataframe
+
+        Returns
+        -------
+        str
+            Header of HSOTLIB file
+        """        
+        header = (f"# Z_MIN={hostdf.ZTRUE_CMB.min()} Z_MAX={hostdf.ZTRUE_CMB.max()}\n\n"
+                   "VPECERR: 0\n\n")
+        return header
+    
+    def write_HOSTLIB(self, hostdf, buffer_size=8192):
+        """Write the HOSTLIB file. Called in write_SIMLIB.
+        
+        Parameters
+        ----------
+        hostdf : pandas.DataFrame
+            Hosts dataframe
+        buffer_size : int
+            buffering option for open() function
+        """  
+        import csv          
+
+        VARNAMES = "VARNAMES:"
+        for k in hostdf.columns:
+            VARNAMES += f" {k}"
+
+        with open(self.out_path.with_suffix('.HOSTLIB'), 'w', buffering=buffer_size) as hostf:
+            hostf.write(self.get_HOSTLIB_doc())
+            hostf.write(self.get_HOSTLIB_header(hostdf))
+            columns = hostdf.columns.values
+            columns = np.insert(columns, 0, 'VARNAMES: ')
+            hostdf['VARNAMES: '] = 'GAL: '
+            hostdf[columns].to_csv(hostf, sep=' ', index=False, quoting=csv.QUOTE_NONE, escapechar=' ')
             
-            line = "GAL: " + "{} " * len(hostdf.columns)
-            lines = []
-            for i, row in hostdf.iterrows():
-                lines.append(line.format(*row))
-                if i % 1000 == 0:
-                    hostf.write("\n".join(lines) + "\n")
-                    lines = []
-            hostf.write("\n".join(lines) + "\n")

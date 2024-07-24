@@ -1,4 +1,4 @@
-`OpSimSummaryV2` is a rework of the old `OpSimSummary` library.
+`OpSimSummaryV2` is a rework of the previous `OpSimSummary` library.
 
 
 [![DOI](https://zenodo.org/badge/37937479.svg)](https://zenodo.org/badge/latestdoi/37937479)
