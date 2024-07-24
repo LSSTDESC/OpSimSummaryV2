@@ -1,5 +1,5 @@
 Welcome to OpSimSummaryV2 documentation!
-=================================
+========================================
 
 .. toctree::
    :maxdepth: 2
@@ -11,8 +11,6 @@ Welcome to OpSimSummaryV2 documentation!
 .. toctree::
    :hidden:
    :titlesonly:
-
-   api
 
 
 Indices and tables

@@ -341,27 +341,27 @@ class OpSimSurvey:
         The :math:`\sigma_\mathrm{PSF}` in units of :math:`\mathrm{arcsec}^{-1}` is obtained as 
 
         .. math::
-            \frac{\mathbf{seeingFwhmEff}}{2\sqrt{2\ln2}}.
+            \sigma_\mathrm{PSF} = \\frac{\mathbf{seeingFwhmEff}}{2\sqrt{2\ln2}}.
         
         The :math:`\mathbf{PSF}` is computed in units of :math:`\mathrm{pixel}^{-1}` as
         
         .. math::
-            \mathbf{PSF} = \frac{\sigma_\mathrm{PSF}}{\mathrm{PixelSize}},
+            \mathbf{PSF} = \\frac{\sigma_\mathrm{PSF}}{\mathrm{PixelSize}},
             
         where :math:`\mathrm{PixelSize}` is the pixel size in :math:`\mathrm{arcsec}^{-1}`.
         
         The zero-point :math:`\mathbf{ZPT}` is computed as 
         
         .. math::       
-            \mathbf{ZPT} = 2 m_5 - m_\mathrm{sky} + 2.5 \log\left[25 A \left(1 + A^{-1}10^{-0.4(m_5-m_\mathrm{sky})}\right)\right],
+            \mathbf{ZPT} = 2 m_5 - m_\mathrm{sky} + 2.5 \log\left[25 A \left(1 + A^{-1}10^{-0.4(m_5-m_\mathrm{sky})}\\right)\\right],
 
         where :math:`m_5 = \mathbf{fiveSigmaDepth}`, :math:`m_\mathrm{sky} = \mathbf{skyBrightness}` and :math:`A` is the noise equivalent area given by 
         :math:`A = 4 \pi \sigma_\mathrm{PSF}^2`.
         
-        The sky noise :math:`\mathbf{SKYSIG}` in unit of :math:`\matrm{ADU}.\matrm{pixel}^{-1}` is computed such as 
+        The sky noise :math:`\mathbf{SKYSIG}` in unit of :math:`\mathrm{ADU}.\mathrm{pixel}^{-1}` is computed such as 
         
         .. math::       
-            \mathbf{SKYSIG}^2 = 10^{-0.4\left(m_5 - \mathbf{ZPT}\right)} \times \mathrm{PixelSize}^2.
+            \mathbf{SKYSIG}^2 = 10^{-0.4\left(m_\mathrm{sky} - \mathbf{ZPT}\\right)} \\times \mathrm{PixelSize}^2.
         """
         sigPSF = OpSimObs['seeingFwhmEff'] / (2 * np.sqrt(2 * np.log(2)))
         

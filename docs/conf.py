@@ -20,14 +20,14 @@ import sys
 import os
 import numpy
 sys.path.insert(0, os.path.abspath('..'))
-import flip 
+import opsimsummaryv2 
 
 project = 'OpSimSummaryV2'
 copyright = '2023, B. Carreres'
 author = 'B. Carreres'
 
 # The full version, including alpha/beta/rc tags
-release = flip.__version__
+release = opsimsummaryv2.__version__
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
@@ -44,6 +44,7 @@ extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 's
               'sphinx.ext.linkcode', 'sphinx.ext.intersphinx', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 extensions.append('autoapi.extension')
 autoapi_dirs = ['../opsimsummaryv2']
+autoapi_python_class_content = 'class'
 
 napoleon_google_docstring = True
 myst_enable_extensions = ["dollarmath"]
@@ -122,6 +123,6 @@ def linkcode_resolve(domain, info):
     else:
         linespec = ""
 
-    fn = relpath(fn, start=flip.__flip_dir_path__)
+    fn = relpath(fn, start=opsimsummaryv2.__opsimsummaryv2_dir_path__)
     
     return "https://github.com//bastiencarreres/OpSimSummaryV2/opsimsummaryv2/%s%s" % (fn, linespec)
