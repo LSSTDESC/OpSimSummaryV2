@@ -80,3 +80,19 @@ def host_joiner(survey_fields, host):
     survey_host = host.loc[grped_host.index]    
     survey_host["GROUPID"] = grped_host
     return survey_host
+
+def dataline(expMJD, ObsID, BAND, CCDgain, CCDnoise, SKYSIG, PSF, ZPT, ZPTNoise):
+    l =  ("S: "
+        f"{expMJD:5.4f} "
+        f"{ObsID:10d}*2 "
+        f"{BAND} "
+        f"{CCDgain:5.2f} "       # CCD Gain
+        f"{CCDnoise:5.2f} "      # CCD Noise
+        f"{SKYSIG:6.2f} "         # SKYSIG
+        f"{PSF:4.2f} "            # PSF1
+        f"{0:4.2f} "                  # PSF2
+        f"{0:4.3f} "                  # PSFRatio
+        f"{ZPT:6.2f} "            # ZPTAVG
+        f"{ZPTNoise:6.3f} "      # ZPTNoise 
+        f"{-99.:+7.3f} ")
+    return l

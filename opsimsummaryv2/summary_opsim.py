@@ -385,7 +385,7 @@ class OpSimSurvey:
                              'PSF': PSF,
                              'ZPT': ZPT,
                              'SKYSIG': SKYSIG,
-                             'BAND': OpSimObs['filter']})
+                             'BAND': OpSimObs['filter']}).reset_index(names='ObsID')
     
     @property
     def hp_rep(self):

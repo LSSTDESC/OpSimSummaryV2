@@ -4,6 +4,7 @@ from pathlib import Path
 import datetime
 import opsimsummaryv2 as oss
 import numpy as np
+from . import utils as ut
 
 class SNANA_Simlib():
     """
@@ -20,11 +21,17 @@ class SNANA_Simlib():
     date_time : str
         The current time, to be written in SIMLIB.
     """
-    def __init__(self, OpSimSurvey, out_path=None, author_name=None):
+    def __init__(self, OpSimSurvey, out_path=None, author_name=None, ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
         self.OpSimSurvey = OpSimSurvey
         self.author_name = author_name
         self.out_path = self._init_out_path(out_path)
         self.date_time = datetime.datetime.now()
+        
+        self.ZPTNoise = ZPTNoise
+        self.CCDnoise = 0.25
+        self.CCDgain = 1.
+        
+        self.dataline = self._init_dataline()
         
     def _init_out_path(self, out_path):
         """Format output path for SIMLIB and HOSTLIB.
@@ -147,10 +154,17 @@ class SNANA_Simlib():
         s += tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__) + '\n'
         if groupID is not None:
             s += f"HOSTLIB_GROUPID: {groupID}" + "\n"
-        s += '#                           CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
+        s += '#                               CCD  CCD         PSF1 PSF2 PSF2/1' +'\n'
         s += '#     MJD      ID*NEXPOSE  FLT GAIN NOISE SKYSIG (pixels)  RATIO  ZPTAVG ZPTERR  MAG' + '\n'
         return s
     
+    def _init_dataline(self):
+        f = lambda expMJD, ObsID, BAND, SKYSIG, PSF, ZPT: ut.dataline(expMJD, ObsID, BAND, 
+                                                                      self.CCDgain,  self.CCDnoise, 
+                                                                      SKYSIG, PSF, ZPT, self.ZPTNoise)
+        
+        return np.vectorize(f)
+
     def LIBdata(self, opsimdf):
         """Give the string of a LIB entry.
 
@@ -164,25 +178,10 @@ class SNANA_Simlib():
         str
             The str of the LIB entry.
         """        
-        lib = ''
         opsimdf['BAND'] = opsimdf['BAND'].map(lambda x: x.upper() if x=='y' else x)
-        for ObsID, row in opsimdf.iterrows():
-            lst = ['S:',
-                   "{0:5.4f}".format(row.expMJD),
-                   "{0:10d}*2".format(ObsID),
-                   row.BAND,
-                   "{0:5.2f}".format(1.),                  # CCD Gain
-                   "{0:5.2f}".format(0.25),                # CCD Noise
-                   "{0:6.2f}".format(row.SKYSIG),          # SKYSIG
-                   "{0:4.2f}".format(row.PSF),             # PSF1
-                   "{0:4.2f}".format(0.),                  # PSF2
-                   "{0:4.3f}".format(0.),                  # PSFRatio
-                   "{0:6.2f}".format(row.ZPT),             # ZPTAVG
-                   "{0:6.3f}".format(0.005),               # ZPTNoise 
-                   "{0:+7.3f}".format(-99.)]               # MAG
-            
-            lib += ' '.join(lst)
-            lib += '\n'
+        lib = '\n'.join(self.dataline(opsimdf['expMJD'].values, opsimdf['ObsID'].values, 
+                                      opsimdf['BAND'].values,opsimdf['SKYSIG'].values,
+                                      opsimdf['PSF'].values, opsimdf['ZPT'].values))
         return lib
     
     def LIBfooter(self, LIBID):
@@ -250,7 +249,15 @@ class SNANA_Simlib():
             self.write_hostlib(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']))
             print(f"HOSTLIB file wrote in {time.time() - tstart:.2f} sec.")
 
-
+    def get_HOSTLIB_doc(self):
+        doc = ("DOCUMENTATION:\n"
+        "PURPOSE: HOSTLIB for LSST based on mock opsim\n"
+        "    VERSIONS:\n"
+        f"    - DATE : {self.date_time}\n"
+        f"    - ASSOCIATED SIMLIB : {self.out_path.absolute()}\n"
+        f"    AUTHORS : {self.author_name}\n"
+        "DOCUMENATION_END:\n"
+        
     def write_hostlib(self, hostdf):
         """write the HOSLIB file. Called in writeSimlib"""              
 
