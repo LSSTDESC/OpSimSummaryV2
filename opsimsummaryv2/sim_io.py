@@ -20,10 +20,17 @@ class SNANA_Simlib():
         The path of the output file, default './'
     date_time : str
         The current time, to be written in SIMLIB
-    dataline: numpy.vectorize
+    dataline : numpy.vectorize
         A vectorized function to write SIMLIB dataline
+    ZPTNoise : float
+        The constant ZPTNoise value, by default 0.005
+    CCDNoise : float
+        The constant CCDNoise value, by default 0.25
+    CCDGain : float
+        The CCD gain in e-/ADU, by default 1.
     """
     def __init__(self, OpSimSurvey, out_path=None, author_name=None, ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
+        """Construct the SNANA Simlib class."""
         self.OpSimSurvey = OpSimSurvey
         self.author_name = author_name
         self.out_path = self._init_out_path(out_path)
@@ -97,7 +104,7 @@ class SNANA_Simlib():
         saturation_flag : int, optional
             The flag corresponding to saturated obs, by default 1024
         comments : str, optional
-            Comments to add to the header, by default '\n'
+            Comments to add to the header, by default '\\n'
 
         Returns
         -------
