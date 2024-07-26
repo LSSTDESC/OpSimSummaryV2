@@ -43,8 +43,18 @@ intersphinx_mapping = {
 extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 'sphinx.ext.autosectionlabel',
               'sphinx.ext.linkcode', 'sphinx.ext.intersphinx', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 extensions.append('autoapi.extension')
+
+def skip_util_classes(app, what, name, obj, skip, options):
+    if name == "__init__":
+       skip = False
+    return skip
+
+def setup(sphinx):
+   sphinx.connect("autoapi-skip-member", skip_util_classes)
+
 autoapi_dirs = ['../opsimsummaryv2']
 autoapi_python_class_content = 'class'
+autoapi_member_order = 'groupwise'
 
 napoleon_google_docstring = True
 myst_enable_extensions = ["dollarmath"]
@@ -69,7 +79,7 @@ source_suffix = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+html_theme = "sphinx_book_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -78,9 +88,6 @@ html_static_path = ['_static']
 
 #html_logo = "_static/flip_logo.webp"
 
-html_theme_options = {
-                        "sidebar_hide_name": True,
-                     }
 
 import inspect
 from os.path import relpath
