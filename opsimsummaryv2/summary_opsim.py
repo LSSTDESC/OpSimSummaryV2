@@ -60,8 +60,8 @@ class OpSimSurvey:
         self.opsimdf = self._get_df_from_sql(self.sql_engine, MJDrange=MJDrange)
         self.opsimdf.attrs['OpSimFile'] = self.db_path.name
 
-        self.tree = BallTree(self.opsimdf [['_dec', '_ra']].values,
-                             leaf_size=40,
+        self.tree = BallTree(self.opsimdf[['_dec', '_ra']].values,
+                             leaf_size=50,
                              metric='haversine')
         
         self.host = self._read_host_file(host_file, **host_config)
@@ -249,7 +249,41 @@ class OpSimSurvey:
         if self.host is not None:
             print('Compute survey hosts')
             self._survey_hosts = self.get_survey_hosts(nworkers=nworkers)
+    
+    def get_obs_from_coords(self, ra, dec, is_deg=True, formatobs=False):
+        """Get observations at ra, dec coordinates.
+
+        Parameters
+        ----------
+        ra : numpy.ndarray(float)
+            RA coordinate
+        dec : numpy.ndarray(float)
+            Dec coordinate
+        is_deg : bool, optional
+            is RA, Dec given in degrees, by default True
+        formatobs : bool, optional
+            format obs for simulation, by default False
+
+        Yields
+        ------
+        pandas.DatFrame
+            Dataframes of observations.
+        """        
+        if is_deg:
+            ra = np.radians(ra)
+            dec = np.radians(dec)
+    
+        obs_idx = self.tree.query_radius(np.array([dec, ra]).T,
+                                        r=self.__LSST_FIELD_RADIUS__,
+                                        count_only=False,
+                                        return_distance=False)
+        for idx in obs_idx:
+            if formatobs:
+                yield self.formatObs(self.opsimdf.iloc[idx].sort_values(by='observationStartMJD'))
+            else:
+                yield self.opsimdf.iloc[idx].sort_values(by='observationStartMJD')
         
+            
     def get_survey_obs(self, formatobs=True):
         """Get survey observations.
 
@@ -263,16 +297,9 @@ class OpSimSurvey:
         pandas.DatFrame
             Dataframes of observations.
         """        
-        obs_idx = self.tree.query_radius(self.survey[['hp_dec', 'hp_ra']],
-                                        r=self.__LSST_FIELD_RADIUS__,
-                                        count_only=False,
-                                        return_distance=False)
-        for idx in obs_idx:
-            if formatobs:
-                yield self.formatObs(self.opsimdf.iloc[idx].sort_values(by='observationStartMJD'))
-            else:
-                yield self.opsimdf.iloc[idx].sort_values(by='observationStartMJD')
-            
+        self.get_obs_from_coords(*self.survey[['hp_ra', 'hp_dec']], 
+                                 formatobs=formatobs)
+ 
     def get_survey_hosts(self, nworkers=10):
         """Get survey hosts.
 
