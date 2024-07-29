@@ -351,6 +351,7 @@ class SNSIM_obsfile(SimWriter):
             ra_size = 3.5, 
             dec_size= 3.5,
             gain = self.CCDgain,
+            ccd_noise = self.CCDnoise,
             field_map = )
         return survey_config
         
