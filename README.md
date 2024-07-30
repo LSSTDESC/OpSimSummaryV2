@@ -10,7 +10,7 @@ See the [ReadTheDoc page](https://opsimsummaryv2.readthedocs.io/en/latest/instal
 ## Installation  and Software Requirements
 
 ```
-git clone https://github.com/bastiencarreres/OpSimSummaryV2.git
+git clone https://github.com/LSSTDESC/OpSimSummaryV2.git
 cd opsimsummaryv2
 pip install .
 ```
