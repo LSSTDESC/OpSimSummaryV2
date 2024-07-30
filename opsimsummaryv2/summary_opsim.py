@@ -5,6 +5,7 @@ import healpy as hp
 import numpy as np
 import sqlalchemy as sqla
 import shapely.geometry as shp_geo
+import shapely.affinity as shp_aff
 from pathlib import Path
 from sklearn.neighbors import BallTree
 from . import utils as ut
@@ -332,6 +333,13 @@ class OpSimSurvey:
                                         self.survey.hp_dec.values).buffer(self.__LSST_FIELD_RADIUS__)
             )
         
+        # scale for dec dependance 
+        survey_fields = survey_fields.map(lambda x: shp_aff.scale(x, 
+                                                                  xfact=np.sqrt(2 / (1 + np.cos(2 * x.centroid.xy[1][0] + np.radians(self.__LSST_FIELD_RADIUS__))))
+                                                                  )
+                                          )
+    
+        # mask for edge effect
         mask = survey_fields.intersects(_SPHERE_LIMIT_LOW_)
         survey_fields[mask] = survey_fields[mask].translate(2 * np.pi)
         mask |= survey_fields.intersects(_SPHERE_LIMIT_HIGH_)
