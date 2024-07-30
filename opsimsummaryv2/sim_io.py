@@ -406,7 +406,6 @@ class SNSIM_obsfile(SimWriter):
             with open(LSST_field_map_path, 'w') as file:
                 file.write(self.get_LSST_field())
         
-
     @staticmethod
     def get_LSST_field():
         LSST_field_header = "% #:ra:0.0028\n"
