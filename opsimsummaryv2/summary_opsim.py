@@ -335,7 +335,7 @@ class OpSimSurvey:
         
         # scale for dec dependance 
         survey_fields = survey_fields.map(lambda x: shp_aff.scale(x, 
-                                                                  xfact=np.sqrt(2 / (1 + np.cos(2 * x.centroid.xy[1][0] + np.radians(self.__LSST_FIELD_RADIUS__))))
+                                                                  xfact=np.sqrt(2 / (1 + np.cos(2 * x.centroid.xy[1][0])))
                                                                   )
                                           )
     
