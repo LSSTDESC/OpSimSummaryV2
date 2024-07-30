@@ -66,11 +66,9 @@ Then the SIMLIB can be write using the `SNANA_Simlib` class:
 
 The `make_simlib.py` script available on the github repository is meant to help to create the LSST SNANA SIMLIB. It could be simply used:
 
-.. code-block:: bash
+.. code-block:: console
 
-    python ../script/make_simlib.py -h
-
-.. code-block:: bash
+    $ python ../script/make_simlib.py -h
 
     usage: OpSimSummaryV2 script [-h] [--Nfields NFIELDS] [--host_file HOST_FILE]
                              [--hf_RA_col HF_RA_COL] [--hf_DEC_col HF_DEC_COL]
