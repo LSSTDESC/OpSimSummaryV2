@@ -297,12 +297,11 @@ class OpSimSurvey:
         pandas.DatFrame
             Dataframes of observations.
         """        
-        return self.get_obs_from_coords(*self.survey[['hp_ra', 'hp_dec']], 
+        return self.get_obs_from_coords(*self.survey[['hp_ra', 'hp_dec']].values.T, 
                                         is_deg=False,
                                         formatobs=formatobs)
         
         
- 
     def get_survey_hosts(self, nworkers=10):
         """Get survey hosts.
 
