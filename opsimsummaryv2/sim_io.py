@@ -6,6 +6,7 @@ import opsimsummaryv2 as oss
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+import yaml
 from . import utils as ut
 
 class SimWriter():
@@ -38,9 +39,12 @@ class SimWriter():
             out_path = './'
             
         out_path = Path(out_path)
-        
+        if not out_path.exists():
+            out_path.mkdir(parents=True)
+    
         if out_path.is_dir():
             out_path /= Path(self.OpSimSurvey.opsimdf.attrs['OpSimFile']).stem  + outfile_ext
+
         if self.OpSimSurvey.survey_hosts is not None:
             out_path = out_path.with_stem(f"{out_path.stem}_{Path(self.OpSimSurvey.host.attrs['file']).stem}")
         return out_path
@@ -70,8 +74,8 @@ class SNANA_Simlib(SimWriter):
     """
     def __init__(self, OpSimSurvey, out_path=None, author_name=None, ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
         """Construct the SNANA Simlib class."""
-        super().__init__(OpSimSurvey, out_path=None, author_name=None, 
-                         ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25)
+        super().__init__(OpSimSurvey, out_path=out_path, author_name=author_name, 
+                         ZPTNoise=ZPTNoise, CCDgain=CCDgain, CCDnoise=CCDnoise)
 
         self.dataline = self._init_dataline()
         
@@ -339,27 +343,33 @@ class SNSIM_obsfile(SimWriter):
                 ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
         """Construct the SNANA Simlib class."""
         
-        super().__init__(OpSimSurvey, out_path=None, author_name=None, 
-                        ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25, 
+        super().__init__(OpSimSurvey, out_path=out_path, author_name=author_name, 
+                        ZPTNoise=ZPTNoise, CCDgain=CCDgain, CCDnoise=CCDnoise, 
                         outfile_ext='.parquet')
     
-    def get_survey_config(self):
+    def get_survey_config(self, write_field_map=False):
         survey_config = dict(
-            survey_file = self.out_path,
+            survey_file = str(self.out_path),
             sig_zp = self.ZPTNoise,
             noise_key = ['skysig', 'skysigADU'],
             ra_size = 3.5, 
             dec_size= 3.5,
             gain = self.CCDgain,
-            ccd_noise = self.CCDnoise,
-            field_map = )
+            ccd_noise = self.CCDnoise)
+        
+        if write_field_map:
+            survey_config['field_map'] = str(self.out_path.with_stem("LSST_field_map").with_suffix('.dat'))
+        else:
+            survey_config['field_map'] = 'PATH/TO/LSST_FIELD_MAP'
         return survey_config
         
-    def write_survey_file(self):
+    def write_survey_file(self, write_survey_conf=True, write_field_map=True):
         tstart = time.time()
         print(f'Writing obs file in {self.out_path}')
         
         obs = self.OpSimSurvey.formatObs(self.OpSimSurvey.opsimdf)
+        obs['BAND'] = obs['BAND'].map(lambda x: 'lsst' + x)
+        
         obs.rename(columns={
             'ObsID': 'fieldID',
             'PSF': 'fwhm_psf',
@@ -380,6 +390,22 @@ class SNSIM_obsfile(SimWriter):
         pq.write_table(pa_table, self.out_path)
         
         print(f'Observations file wrote in {time.time() - tstart:.2f} sec.\n')
+        
+        survey_conf_path = self.out_path.with_stem('survey_conf').with_suffix('.yaml')
+        print(f'Writing survey conf yaml file in {survey_conf_path}\n')
+
+        if write_survey_conf:
+            survey_conf = self.get_survey_config(write_field_map=write_field_map)
+            yaml_dic = {'survey_conf': survey_conf}
+            with open(survey_conf_path, 'w') as file:
+                yaml.safe_dump(yaml_dic, file,  default_flow_style=None, indent=4)
+        
+        LSST_field_map_path = self.out_path.with_stem("LSST_field_map").with_suffix('.dat')
+        print(f'Writing LSST field map file in {LSST_field_map_path}')
+        if write_field_map:
+            with open(LSST_field_map_path, 'w') as file:
+                file.write(self.get_LSST_field())
+        
 
     @staticmethod
     def get_LSST_field():
@@ -387,5 +413,5 @@ class SNSIM_obsfile(SimWriter):
         LSST_field_header += "% @:dec:0.0028\n\n"
         LSST_field =      ["-1:#:-1:#:-1:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:-1:#:-1:#:-1\n"] * 3
         LSST_field.extend(["0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0\n"] * 9)
-        LSST_field.extend(["-1:#:-1:#:-1:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:-1:#:-1:#:-1"] * 3)
+        LSST_field.extend(["-1:#:-1:#:-1:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:-1:#:-1:#:-1\n"] * 3)
         return LSST_field_header + "@\n".join(LSST_field)
