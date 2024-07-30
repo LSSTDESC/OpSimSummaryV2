@@ -124,7 +124,7 @@ class OpSimSurvey:
         df['_dec'] = np.radians(df.fieldDec)
         df.set_index('observationId', inplace=True)
         print(f'Read N = {len(df)} observations in {time.time() - tstart:.2f} seconds.')
-        return df
+        return df.sort_values(by='observationStartMJD')
     
     def _read_host_file(self, host_file, col_ra='ra', col_dec='dec', ra_dec_unit='radians'):
         """Read a parquet file containing hosts.
@@ -279,9 +279,9 @@ class OpSimSurvey:
                                         return_distance=False)
         for idx in obs_idx:
             if formatobs:
-                yield self.formatObs(self.opsimdf.iloc[idx].sort_values(by='observationStartMJD'))
+                yield self.formatObs(self.opsimdf.iloc[idx])
             else:
-                yield self.opsimdf.iloc[idx].sort_values(by='observationStartMJD')
+                yield self.opsimdf.iloc[idx]
         
             
     def get_survey_obs(self, formatobs=True):
@@ -297,9 +297,11 @@ class OpSimSurvey:
         pandas.DatFrame
             Dataframes of observations.
         """        
-        self.get_obs_from_coords(*self.survey[['hp_ra', 'hp_dec']], 
-                                 formatobs=formatobs)
- 
+        return self.get_obs_from_coords(*self.survey[['hp_ra', 'hp_dec']].values.T, 
+                                        is_deg=False,
+                                        formatobs=formatobs)
+        
+        
     def get_survey_hosts(self, nworkers=10):
         """Get survey hosts.
 

@@ -4,9 +4,52 @@ from pathlib import Path
 import datetime
 import opsimsummaryv2 as oss
 import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
+import yaml
 from . import utils as ut
 
-class SNANA_Simlib():
+class SimWriter():
+    def __init__(self, OpSimSurvey, out_path=None, author_name=None, 
+                ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25, outfile_ext='.SIMLIB'):
+
+        self.OpSimSurvey = OpSimSurvey
+        self.author_name = author_name
+        self.out_path = self._init_out_path(out_path, outfile_ext)
+        self.date_time = datetime.datetime.now()
+        
+        self.ZPTNoise = ZPTNoise
+        self.CCDnoise = CCDnoise
+        self.CCDgain = CCDgain
+    
+    def _init_out_path(self, out_path, outfile_ext):
+        """Format output path for SIMLIB and HOSTLIB.
+
+        Parameters
+        ----------
+        out_path : str
+            Output directory or file.
+
+        Returns
+        -------
+        pathlib.Path
+            Path to the output SIMLIB.
+        """        
+        if out_path is None:
+            out_path = './'
+            
+        out_path = Path(out_path)
+        if not out_path.exists():
+            out_path.mkdir(parents=True)
+    
+        if out_path.is_dir():
+            out_path /= Path(self.OpSimSurvey.opsimdf.attrs['OpSimFile']).stem  + outfile_ext
+
+        if self.OpSimSurvey.survey_hosts is not None:
+            out_path = out_path.with_stem(f"{out_path.stem}_{Path(self.OpSimSurvey.host.attrs['file']).stem}")
+        return out_path
+    
+class SNANA_Simlib(SimWriter):
     """
     A class to write SNANA simulation output from OpSimSurvey object.
 
@@ -31,41 +74,11 @@ class SNANA_Simlib():
     """
     def __init__(self, OpSimSurvey, out_path=None, author_name=None, ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
         """Construct the SNANA Simlib class."""
-        self.OpSimSurvey = OpSimSurvey
-        self.author_name = author_name
-        self.out_path = self._init_out_path(out_path)
-        self.date_time = datetime.datetime.now()
-        
-        self.ZPTNoise = ZPTNoise
-        self.CCDnoise = 0.25
-        self.CCDgain = 1.
-        
+        super().__init__(OpSimSurvey, out_path=out_path, author_name=author_name, 
+                         ZPTNoise=ZPTNoise, CCDgain=CCDgain, CCDnoise=CCDnoise)
+
         self.dataline = self._init_dataline()
         
-    def _init_out_path(self, out_path):
-        """Format output path for SIMLIB and HOSTLIB.
-
-        Parameters
-        ----------
-        out_path : str
-            Output directory or file.
-
-        Returns
-        -------
-        pathlib.Path
-            Path to the output SIMLIB.
-        """        
-        if out_path is None:
-            out_path = './'
-            
-        out_path = Path(out_path)
-        
-        if out_path.is_dir():
-            out_path /= Path(self.OpSimSurvey.opsimdf.attrs['OpSimFile']).stem  + '.SIMLIB'
-        if self.OpSimSurvey.survey_hosts is not None:
-            out_path = out_path.with_stem(f"{out_path.stem}_{Path(self.OpSimSurvey.host.attrs['file']).stem}")
-        return out_path
-    
     def get_SIMLIB_doc(self):
         """Give the DOCUMENTATION string for SIMLIB.
 
@@ -74,8 +87,8 @@ class SNANA_Simlib():
         str
             DOCUMENTATION string
         """        
-        minMJD = self.OpSimSurvey.opsimdf.observationStartMJD.min()
-        maxMJD = self.OpSimSurvey.opsimdf.observationStartMJD.max()
+        minMJD = self.OpSimSurvey.opsimdf['observationStartMJD'].min()
+        maxMJD = self.OpSimSurvey.opsimdf['observationStartMJD'].max()
         OpSimFile = self.OpSimSurvey.opsimdf.attrs['OpSimFile']
         doc = 'DOCUMENTATION:\n'
         doc += f'    PURPOSE: simulate LSST based on mock opsim version {OpSimFile}\n'
@@ -323,4 +336,81 @@ class SNANA_Simlib():
             columns = np.insert(columns, 0, 'VARNAMES: ')
             hostdf['VARNAMES: '] = 'GAL: '
             hostdf[columns].to_csv(hostf, sep=' ', index=False, quoting=csv.QUOTE_NONE, escapechar=' ')
-            
+
+
+class SNSIM_obsfile(SimWriter):
+    def __init__(self, OpSimSurvey, out_path=None, author_name=None, 
+                ZPTNoise=0.005, CCDgain=1., CCDnoise=0.25):
+        """Construct the SNANA Simlib class."""
+        
+        super().__init__(OpSimSurvey, out_path=out_path, author_name=author_name, 
+                        ZPTNoise=ZPTNoise, CCDgain=CCDgain, CCDnoise=CCDnoise, 
+                        outfile_ext='.parquet')
+    
+    def get_survey_config(self, write_field_map=False):
+        survey_config = dict(
+            survey_file = str(self.out_path),
+            sig_zp = self.ZPTNoise,
+            noise_key = ['skysig', 'skysigADU'],
+            ra_size = 3.5, 
+            dec_size= 3.5,
+            gain = self.CCDgain,
+            ccd_noise = self.CCDnoise)
+        
+        if write_field_map:
+            survey_config['field_map'] = str(self.out_path.with_stem("LSST_field_map").with_suffix('.dat'))
+        else:
+            survey_config['field_map'] = 'PATH/TO/LSST_FIELD_MAP'
+        return survey_config
+        
+    def write_survey_file(self, write_survey_conf=True, write_field_map=True):
+        tstart = time.time()
+        print(f'Writing obs file in {self.out_path}')
+        
+        obs = self.OpSimSurvey.formatObs(self.OpSimSurvey.opsimdf)
+        obs['BAND'] = obs['BAND'].map(lambda x: 'lsst' + x)
+        
+        obs.rename(columns={
+            'ObsID': 'fieldID',
+            'PSF': 'fwhm_psf',
+            'ZPT': 'zp',
+            'SKYSIG': 'skysig',
+            'BAND': 'filter'
+        }, inplace=True)
+        
+        obs.join(self.OpSimSurvey.opsimdf[['fieldRA', 'fieldDec']])
+        
+        meta = {'author_name'.encode(): str(self.author_name).encode(),
+                'date_created'.encode(): str(self.date_time).encode()}
+        
+        pa_table = pa.Table.from_pandas(obs, preserve_index=False)
+        
+        pa_table.replace_schema_metadata(meta)
+        
+        pq.write_table(pa_table, self.out_path)
+        
+        print(f'Observations file wrote in {time.time() - tstart:.2f} sec.\n')
+        
+        survey_conf_path = self.out_path.with_stem('survey_conf').with_suffix('.yaml')
+        print(f'Writing survey conf yaml file in {survey_conf_path}\n')
+
+        if write_survey_conf:
+            survey_conf = self.get_survey_config(write_field_map=write_field_map)
+            yaml_dic = {'survey_conf': survey_conf}
+            with open(survey_conf_path, 'w') as file:
+                yaml.safe_dump(yaml_dic, file,  default_flow_style=None, indent=4)
+        
+        LSST_field_map_path = self.out_path.with_stem("LSST_field_map").with_suffix('.dat')
+        print(f'Writing LSST field map file in {LSST_field_map_path}')
+        if write_field_map:
+            with open(LSST_field_map_path, 'w') as file:
+                file.write(self.get_LSST_field())
+        
+    @staticmethod
+    def get_LSST_field():
+        LSST_field_header = "% #:ra:0.0028\n"
+        LSST_field_header += "% @:dec:0.0028\n\n"
+        LSST_field =      ["-1:#:-1:#:-1:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:-1:#:-1:#:-1\n"] * 3
+        LSST_field.extend(["0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0\n"] * 9)
+        LSST_field.extend(["-1:#:-1:#:-1:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:0:#:-1:#:-1:#:-1\n"] * 3)
+        return LSST_field_header + "@\n".join(LSST_field)
