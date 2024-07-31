@@ -275,7 +275,7 @@ class SNANA_Simlib(SimWriter):
         if self.OpSimSurvey.survey_hosts is not None:
             tstart = time.time()
             print(f"Writting {len(self.OpSimSurvey.survey_hosts)} hosts in {self.out_path.with_suffix('.HOSTLIB')}")
-            self.write_hostlib(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']), buffer_size=buffer_size)
+            self.write_HOSTLIB(self.OpSimSurvey.survey_hosts.drop(columns=['ra', 'dec']), buffer_size=buffer_size)
             print(f"HOSTLIB file wrote in {time.time() - tstart:.2f} sec.")
 
     def get_HOSTLIB_doc(self):

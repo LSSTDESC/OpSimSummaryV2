@@ -343,7 +343,8 @@ class OpSimSurvey:
         mask = survey_fields.intersects(_SPHERE_LIMIT_LOW_)
         survey_fields[mask] = survey_fields[mask].translate(2 * np.pi)
         mask |= survey_fields.intersects(_SPHERE_LIMIT_HIGH_)
-        survey_fields.loc[mask, 'geometry'] = gpd.GeoSeries([ut.format_poly(p) for p in survey_fields[mask].geometry])
+        survey_fields.loc[mask, 'geometry'] = gpd.GeoSeries(data=[ut.format_poly(p) for p in survey_fields[mask].geometry],
+                                                            index=survey_fields[mask].index)
         
         host_joiner = partial(ut.host_joiner, survey_fields)
         
