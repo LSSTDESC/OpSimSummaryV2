@@ -54,18 +54,23 @@ The magnitude of the source is given by:
 with :math:`F^\mathrm{ref}_\nu(\lambda)` the flux density of a reference source, in the AB magnitude system :math:`F^\mathrm{ref}_\nu(\lambda) = 3631 \ \mathrm{Jy}`. :math:`S^\mathrm{atm}(\lambda)` is the atmosphere transmission 
 and :math:`S_b^\mathrm{syst}(\lambda)` the system transmission including optics, filter, ccd efficiency.
 
+We can write:
+
+.. math:: 
+    F_b =  C \times 10^{-0.4 m_b}\int_0^\infty F^\mathrm{ref}_\nu(\lambda) S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
+
+with :math:`C = \frac{\pi D^2 T}{4gh}`.
+
 The :math:`\kappa` value is thus given by:
 
 .. math::
     \kappa = C \times \int_0^\infty F^\mathrm{ref}_\nu(\lambda) S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
 
-with :math:`C = \frac{\pi D^2 T}{4gh}`.
-
 For the sky, the same reasoning gives:
 
 .. math::
 
-    C_b = C  \times  n_\mathrm{eff} \times \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
+    C_b = C  \times  n_\mathrm{eff} \times 10^{-0.4 m_b^\mathrm{sky}} \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
 
 where there is no more atmosphere transmission and :math:`n_\mathrm{eff}` is the effective number of pixel that is given by:
 
@@ -106,7 +111,7 @@ and the source ADU count can be write
 .. math::
     F_b = 10^{-0.4(m_b - \mathbf{ZPT})}.
 
-The sky noise by pixel is given by
+The sky noise **SKYSIG** by pixel is given by
 
 .. math::
     \sigma_\mathrm{sky}^2 = 10^{-0.4(m_b^\mathrm{sky} - \mathbf{ZPT})} \times p_\mathrm{size}^2.
