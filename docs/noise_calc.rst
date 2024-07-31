@@ -6,7 +6,7 @@ Calculs are inspired from `R. Biswas et al. 2020 <https://iopscience.iop.org/art
 The source count in a given band b in unit of ADU is given by:
 
 .. math::
-    S_b = \kappa 10^{-0.4 m_b}
+    F_b = \kappa 10^{-0.4 m_b}
 
 The sky count in a given band in unit of ADU is given by:
 
@@ -18,7 +18,7 @@ where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in 
 Thus, the SNR is given as:
 
 .. math::
-    \mathrm{SNR} = \frac{S_b}{\left(S_b + C_b\right)^\frac{1}{2}}
+    \mathrm{SNR} = \frac{F_b}{\left(F_b + C_b\right)^\frac{1}{2}}
 
 
 The magnitude of a source with an SNR equal to five, :math:`m_b^5`, allows to find the :math:`\kappa` second degree equation:
@@ -41,7 +41,7 @@ We will now describes the computation of the ratio :math:`\frac{\kappa}{\alpha}`
 If the source at the top of the atmosphere has a flux density :math:`F_\nu(\lambda)`, its count is given by:
 
 .. math:: 
-    S_b = \frac{\pi D^2 T}{4gh}\int_0^\infty F_\nu(\lambda) S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
+    F_b = \frac{\pi D^2 T}{4gh}\int_0^\infty F_\nu(\lambda) S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
 
 with :math:`D` the mirror diameter, :math:`T` the exposure time, :math:`g` the CCD gain in photo-electron per ADU and :math:`h` the Planck constant.
 
@@ -104,9 +104,9 @@ We define the zero-point **ZPT** as
 and the source ADU count can be write
 
 .. math::
-    S_b = 10^{-0.4(m_b - \mathbf{ZPT})}.
+    F_b = 10^{-0.4(m_b - \mathbf{ZPT})}.
 
-The sky noise by pixel is given by
+The sky noise **SKYSIG** by pixel is given by
 
 .. math::
     \sigma_\mathrm{sky}^2 = 10^{-0.4(m_b^\mathrm{sky} - \mathbf{ZPT})} \times p_\mathrm{size}^2.
