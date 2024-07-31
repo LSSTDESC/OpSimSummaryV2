@@ -1,7 +1,7 @@
 Notes on noise calculation
 ==========================
 
-Calculs are inspired from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_ 
+The computation proposed here follows from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_ 
 
 The source count in a given band b in unit of ADU is given by:
 
