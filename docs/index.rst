@@ -7,6 +7,7 @@ Welcome to OpSimSummaryV2 documentation!
 
    installation.rst
    basicusage.rst
+   noise_calc.rst
 
 .. toctree::
    :hidden:
