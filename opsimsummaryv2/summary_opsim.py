@@ -1,11 +1,17 @@
 import time
 import pandas as pd
-import geopandas as gpd
 import healpy as hp
 import numpy as np
 import sqlalchemy as sqla
-import shapely.geometry as shp_geo
-import shapely.affinity as shp_aff
+
+try:
+    import geopandas as gpd
+    import shapely.geometry as shp_geo
+    import shapely.affinity as shp_aff
+    use_shapely = True
+except: 
+    use_shapely = False
+
 from pathlib import Path
 from sklearn.neighbors import BallTree
 from . import utils as ut
@@ -316,6 +322,9 @@ class OpSimSurvey:
         pandas.DataFrame
             Dataframe of host inside the survey, matched to their field indicated by GROUPID.
         """        
+        if not use_shapely:
+            raise ValueError('get_survey_hosts can not be used without shapely')
+        
         if self.host is None:
             raise ValueError('No host file set.')
     

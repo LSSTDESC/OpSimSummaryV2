@@ -1,7 +1,12 @@
-import geopandas as gpd
 import numpy as np
-import shapely.geometry as shp_geo
-import shapely.ops as shp_ops
+try:
+    import geopandas as gpd
+    import shapely.geometry as shp_geo
+    import shapely.ops as shp_ops
+    use_shapely = True
+except:
+    use_shapely = False
+
 
 
 def format_poly(poly):
@@ -17,6 +22,9 @@ def format_poly(poly):
     shapely.MultiPolygons
         Polygon that represent fields cutted on 2 PI edge.
     """    
+    if not use_shapely:
+        raise ValueError('format_poly can not be used without shapely')
+    
     _SPHERE_LIMIT_HIGH_ = shp_geo.LineString(
         [[2 * np.pi, -np.pi / 2], [2 * np.pi, np.pi / 2]]
     )
@@ -65,6 +73,9 @@ def host_joiner(survey_fields, host):
     pandas.DataFrame
         Datafrane containing host that are in field with their correspind GROUPID
     """    
+    if not use_shapely:
+        raise ValueError('host_joiner can not be used without shapely')
+    
     # Select host in circle
     host_pos =  gpd.GeoDataFrame(
         index=host.index,
