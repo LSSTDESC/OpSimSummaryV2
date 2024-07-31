@@ -1,7 +1,7 @@
 Notes on noise calculation
 ==========================
 
-Calculs are inspired from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_ 
+The computation proposed here follows from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_ 
 
 The source count in a given band b in unit of ADU is given by:
 
@@ -13,7 +13,7 @@ The sky count in a given band in unit of ADU is given by:
 .. math::
     C_b = \alpha 10^{-0.4 m_b^\mathrm{sky}},
 
-where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in ADU per pixel.
+where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in ADU per arsec.
 
 Thus, the SNR is given as:
 
