@@ -13,7 +13,7 @@ The sky count in a given band in unit of ADU is given by:
 .. math::
     C_b = \alpha 10^{-0.4 m_b^\mathrm{sky}},
 
-where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in ADU per pixel.
+where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in ADU per arsec.
 
 Thus, the SNR is given as:
 
