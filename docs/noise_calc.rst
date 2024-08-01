@@ -1,7 +1,8 @@
 Notes on noise calculation
 ==========================
 
-The computation proposed here follows from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_ 
+The computation proposed here follows from `R. Biswas et al. 2020 <https://iopscience.iop.org/article/10.3847/1538-4365/ab72f2>`_. In the following the quantities
+in **bold** refers to SNANA quantities. 
 
 The source count in a given band b in unit of ADU is given by
 
@@ -82,7 +83,11 @@ where there is no more atmosphere transmission, :math:`p_\mathrm{size}` is the l
                    &= A \times p_\mathrm{size}^{-2},
 
 
-with the PSF width in unit of :math:`\mathrm{arcsec}` and :math:`A` is the noise equivalent area in :math:`\mathrm{arcsec}^{2}`.
+with the PSF width in unit of :math:`\mathrm{arcsec}` and :math:`A` is the noise equivalent area in :math:`\mathrm{arcsec}^{2}`. One can note that the
+**PSF** sigma in units of :math:`\mathrm{pixel}` is given by 
+
+.. math::
+    \mathbf{PSF} = \frac{\mathrm{FWHM}_\mathrm{PSF}}{2\sqrt{2\ln2}}p_\mathrm{size}^{-1}.
 
 Thus we have
 
