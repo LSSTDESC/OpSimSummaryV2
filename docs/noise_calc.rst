@@ -13,7 +13,7 @@ The sky count in a given band in unit of ADU is given by:
 .. math::
     C_b = \alpha 10^{-0.4 m_b^\mathrm{sky}},
 
-where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in ADU per arsec.
+where :math:`m_b^\mathrm{sky}` is the sky magnitudes corresponding to a flux in :math:`\mathrm{ADU} \ \mathrm{arsec}^{-2}`.
 
 Thus, the SNR is given as:
 
@@ -70,26 +70,28 @@ For the sky, the same reasoning gives:
 
 .. math::
 
-    C_b = C  \times  n_\mathrm{eff} \times 10^{-0.4 m_b^\mathrm{sky}} \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
+    C_b = C \times \frac{n_\mathrm{eff}}{p_\mathrm{size}^2} \times 10^{-0.4 m_b^\mathrm{sky}} \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda,
 
-where there is no more atmosphere transmission and :math:`n_\mathrm{eff}` is the effective number of pixel that is given by:
+where there is no more atmosphere transmission, :math:`p_\mathrm{size}` is the length size of pixels with :math:`p_\mathrm{size}^2` the corresponding pixel area in unit of :math:`\mathrm{arcsec}^2 \ \mathrm{pixel}^{-1}` and, :math:`n_\mathrm{eff}` is the effective number of pixel that is given by:
 
 .. math::
     n_\mathrm{eff} &= \left(\iint \mathrm{PSF}^2 dS\right)^{-1} \times p_\mathrm{size}^{-2}\\
-                   &= 4 \pi \sigma_\mathrm{PSF}^2\\
-                   &= \frac{\pi}{\ln2} \mathrm{FWHM}_\mathrm{PSF}^2
+                   &= 4 \pi \sigma_\mathrm{PSF}^2 p_\mathrm{size}^{-2}\\
+                   &= \frac{\pi}{\ln2} \mathrm{FWHM}_\mathrm{PSF}^2 p_\mathrm{size}^{-2}
+                   &= A \times p_\mathrm{size}^{-2}
 
-with the PSF width given in unit of :math:`\mathrm{arcsec}^{-1}` and :math:`p_\mathrm{size}` the length size of pixels with :math:`p_\mathrm{size}^2` the corresponding pixel area in unit of :math:`\mathrm{arcsec}^2 \ \mathrm{pixel}^{-1}`.
+
+with the PSF width given in unit of :math:`\mathrm{arcsec}^{-1}` and :math:`A` is the noise equivalent area.
 
 Thus we have:
 
 .. math::
-    \alpha = C \times  n_\mathrm{eff} \times \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda.
+    \alpha = C \times \frac{\pi}{\ln2} \mathrm{FWHM}_\mathrm{PSF}^2 \times \int_0^\infty F^\mathrm{ref}_\nu(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda.
 
 In the AB magnitude sytem the ratio betweem :math:`\kappa` and :math:`\alpha` is:
 
 .. math::
-    \frac{\kappa}{\alpha} = n_\mathrm{eff}^{-1} \frac{\int_0^\infty S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda}{\int_0^\infty S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda}.
+    \frac{\kappa}{\alpha} =^{\frac{\int_0^\infty S^\mathrm{atm}(\lambda)S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda}{\int_0^\infty S_b^\mathrm{syst}(\lambda)\lambda^{-1}d\lambda}.
 
 Using the approximation  
 
