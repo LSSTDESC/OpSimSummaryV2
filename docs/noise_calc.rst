@@ -79,7 +79,7 @@ where there is no more atmosphere transmission and :math:`n_\mathrm{eff}` is the
                    &= 4 \pi \sigma_\mathrm{PSF}^2\\
                    &= \frac{\pi}{\ln2} \mathrm{FWHM}_\mathrm{PSF}^2
 
-with the PSF width given in unit of :math:`\mathrm{arcsec}^{-1}` and the :math:`p_\mathrm{size}` the size of the pixel in :math:`\mathrm{pixel} \ \mathrm{arcsec}^{-1}`.
+with the PSF width given in unit of :math:`\mathrm{arcsec}^{-1}` and :math:`p_\mathrm{size}` the length size of pixels with :math:`p_\mathrm{size}^2` the corresponding pixel area in unit of :math:`\mathrm{arcsec}^2 \ \mathrm{pixel}^{-1}`.
 
 Thus we have:
 
