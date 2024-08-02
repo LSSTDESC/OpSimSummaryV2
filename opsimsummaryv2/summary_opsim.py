@@ -5,10 +5,12 @@ from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 import pandas as pd
+
 try:
     import geopandas as gpd
     import shapely.geometry as shp_geo
     import shapely.affinity as shp_aff
+
     use_geopandas = True
 except ImportError:
     use_geopandas = False

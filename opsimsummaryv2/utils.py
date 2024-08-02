@@ -6,6 +6,7 @@ try:
     import geopandas as gpd
     import shapely.geometry as shp_geo
     import shapely.ops as shp_ops
+
     use_geopandas = True
 except ImportError:
     use_geopandas = False
@@ -77,7 +78,7 @@ def host_joiner(survey_fields, host):
     pandas.DataFrame
         Datafrane containing host that are in field with their correspind GROUPID
     """
-        if not use_geopandas:
+    if not use_geopandas:
         ModuleNotFoundError("Install geopandas library to use host_joiner.")
 
     # Select host in circle
