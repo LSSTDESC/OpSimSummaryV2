@@ -7,14 +7,16 @@ from pathlib import Path
 import pandas as pd
 try:
     import geopandas as gpd
+    import shapely.geometry as shp_geo
+    import shapely.affinity as shp_aff
     use_geopandas = True
 except ImportError:
     use_geopandas = False
+
 import healpy as hp
 import numpy as np
 import sqlalchemy as sqla
-import shapely.geometry as shp_geo
-import shapely.affinity as shp_aff
+
 from sklearn.neighbors import BallTree
 from astropy.time import Time
 from . import utils as ut
