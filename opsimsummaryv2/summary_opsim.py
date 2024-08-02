@@ -5,7 +5,11 @@ from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
 import pandas as pd
-import geopandas as gpd
+try:
+    import geopandas as gpd
+    use_geopandas = True
+except ImportError:
+    use_geopandas = False
 import healpy as hp
 import numpy as np
 import sqlalchemy as sqla
@@ -338,6 +342,9 @@ class OpSimSurvey:
         pandas.DataFrame
             Dataframe of host inside the survey, matched to their field indicated by GROUPID.
         """
+        if not use_geopandas:
+            raise ModuleNotFoundError("Install geopandas library to use host matching.")
+
         if self.host is None:
             raise ValueError("No host file set.")
 
