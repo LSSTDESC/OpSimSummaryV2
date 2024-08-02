@@ -77,7 +77,7 @@ def host_joiner(survey_fields, host):
     pandas.DataFrame
         Datafrane containing host that are in field with their correspind GROUPID
     """
-        if not use_geopandas:
+    if not use_geopandas:
         ModuleNotFoundError("Install geopandas library to use host_joiner.")
 
     # Select host in circle
