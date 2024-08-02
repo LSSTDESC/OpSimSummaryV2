@@ -13,3 +13,7 @@ git clone https://github.com/LSSTDESC/OpSimSummaryV2.git
 cd opsimsummaryv2
 pip install .
 ```
+If you want to use host matching feature install using
+```
+pip install .[hostmatch]
+```
