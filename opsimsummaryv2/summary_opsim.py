@@ -279,7 +279,7 @@ class OpSimSurvey:
             print("Compute survey hosts")
             self._survey_hosts = self.get_survey_hosts(nworkers=nworkers)
 
-    def get_obs_from_coords(self, ra, dec, is_deg=True, formatobs=False):
+    def get_obs_from_coords(self, ra, dec, is_deg=True, formatobs=False, keep_keys=[]):
         """Get observations at ra, dec coordinates.
 
         Parameters
@@ -292,6 +292,8 @@ class OpSimSurvey:
             is RA, Dec given in degrees, by default True
         formatobs : bool, optional
             format obs for simulation, by default False
+        keep_keys : list(str)
+            List of keys to keep in addition to formatted quantities
 
         Yields
         ------
@@ -310,18 +312,21 @@ class OpSimSurvey:
         )
         for idx in obs_idx:
             if formatobs:
-                yield self.formatObs(self.opsimdf.iloc[idx])
+                yield self.formatObs(self.opsimdf.iloc[idx], 
+                                     keep_keys=keep_keys)
             else:
                 yield self.opsimdf.iloc[idx]
 
-    def get_survey_obs(self, formatobs=True):
+    def get_survey_obs(self, formatobs=True, keep_keys=[]):
         """Get survey observations.
 
         Parameters
         ----------
         formatobs : bool, optional
             Format the observation to get only quantities of interest for simulation, by default True
-
+        keep_keys : list(str)
+            List of keys to keep in addition to formatted quantities
+            
         Yields
         ------
         pandas.DatFrame
@@ -331,6 +336,7 @@ class OpSimSurvey:
             *self.survey[["hp_ra", "hp_dec"]].values.T,
             is_deg=False,
             formatobs=formatobs,
+            keep_keys=keep_keys
         )
 
     def get_survey_hosts(self, nworkers=10):
@@ -393,13 +399,15 @@ class OpSimSurvey:
 
         return survey_host
 
-    def formatObs(self, OpSimObs):
+    def formatObs(self, OpSimObs, keep_keys=[]):
         """Format function to get quantities of interest for simulation.
 
         Parameters
         ----------
         OpSimObs : pandas.DataFrame
             Dataframe of OpSim output
+        keep_keys : list(str)
+            List of keys to keep in addition to formatted quantities
 
         Returns
         -------
@@ -456,15 +464,20 @@ class OpSimSurvey:
         dskymag = OpSimObs["skyBrightness"] - ZPT
         SKYSIG = np.sqrt(10 ** (-0.4 * dskymag) * self.__LSST_pixelSize__**2)
 
-        return pd.DataFrame(
+        formatobs_df = pd.DataFrame(
             {
                 "expMJD": OpSimObs["observationStartMJD"],
                 "PSF": PSF,
                 "ZPT": ZPT,
                 "SKYSIG": SKYSIG,
                 "BAND": OpSimObs["filter"],
+                **{
+                    k :  OpSimObs[k] for k in keep_keys
+                }
             }
         ).reset_index(names="ObsID")
+
+        return formatobs_df
 
     @property
     def hp_rep(self):
