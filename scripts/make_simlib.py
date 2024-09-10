@@ -19,16 +19,19 @@ parser.add_argument('db_file',
 
 parser.add_argument('--Nfields', '-Nf',
                     help='Number of fields to sample',
-                    default=50000)
+                    default=50000, type=int)
 
 parser.add_argument('--host_file', '-hf',
                     help='absolute path to a host file.',
                     default=None)
 
+parser.add_argument('--author', '-auth',
+                    help='Author of the file.',
+                    default=None)
+
 parser.add_argument('--hf_RA_col', '-hfra', 
                     help='RA column keys in host file',
                     default='RA_GAL')
-
 
 parser.add_argument('--hf_DEC_col', '-hfdec', 
                     help='DEC column keys in host file',
@@ -40,11 +43,11 @@ parser.add_argument('--hf_radec_unit',
 
 parser.add_argument('--min_MJD',
                     help='Minimum date to query',
-                    default=None)
+                    default=None, type=float)
 
 parser.add_argument('--max_MJD',
                     help='Maximum date to query',
-                    default=None)
+                    default=None, type=float)
 
 parser.add_argument('--output_dir',
                     help='Output dir or file for the SIMLIB',
@@ -52,15 +55,15 @@ parser.add_argument('--output_dir',
 
 parser.add_argument('--random_seed', '-rs',
                     help='Random seed for survey sampling',
-                    default=None)
+                    default=None, type=int)
 
 parser.add_argument('--limit_numpy_threads', '-np_threads',
                     help='Limit the number of threads numpy could  use.',
-                    default=4)
+                    default=4, type=int)
 
 parser.add_argument('--n_cpu',
                     help='Number of cpu to use for matching survey and hosts.',
-                    default=10)
+                    default=10, type=int)
 
 
 args = parser.parse_args()
@@ -91,7 +94,7 @@ OpSimSurv.compute_hp_rep(nside=256, minVisits=500, maxVisits=10000)
 OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=args.n_cpu)
 
 # Write the SIMLIB
-sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir)
+sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author)
 sim.write_SIMLIB(write_batch_size=100)
 
 
