@@ -145,7 +145,11 @@ class OpSimSurvey:
         return df.sort_values(by="observationStartMJD")
 
     def _read_host_file(
-        self, host_file, col_ra="ra", col_dec="dec", ra_dec_unit="radians", 
+        self,
+        host_file,
+        col_ra="ra",
+        col_dec="dec",
+        ra_dec_unit="radians",
         wgt_map=None,
     ):
         """Read a parquet file containing hosts.
@@ -172,28 +176,28 @@ class OpSimSurvey:
 
         print("Reading host from {}".format(host_file))
         hostdf = pd.read_parquet(host_file)
-        
+
         if wgt_map is not None:
-            print(f'Reading and applying HOST WGT MAP from {wgt_map}')
+            print(f"Reading and applying HOST WGT MAP from {wgt_map}")
             var_names, wgt_map = ut.read_SNANA_WGTMAP(wgt_map)
             if len(var_names) > 1:
-                raise NotImplementedError('HOST RESAMPLING ONLY WORK FOR 1 VARIABLES')
+                raise NotImplementedError("HOST RESAMPLING ONLY WORK FOR 1 VARIABLES")
             keep_index = ut.host_resampler(
                 wgt_map[var_names[0]],
-                wgt_map['WGT'],
+                wgt_map["WGT"],
                 hostdf.index.values,
-                hostdf[var_names[0]].values
+                hostdf[var_names[0]].values,
             )
-            
+
             hostdf = hostdf.loc[keep_index]
-            
-            if 'SNMAGSHIFT' in wgt_map:
+
+            if "SNMAGSHIFT" in wgt_map:
                 snmagshift = np.zeros(len(hostdf))
-                for i in range(len(wgt_map['WGT'])-1):
+                for i in range(len(wgt_map["WGT"]) - 1):
                     mask = np.ones(len(hostdf), dtype=bool)
                     for v in var_names:
                         mask &= hostdf[v].between(wgt_map[v][i], wgt_map[v][i + 1])
-                    snmagshift[mask] = wgt_map['SNMAGSHIFT'][i]
+                    snmagshift[mask] = wgt_map["SNMAGSHIFT"][i]
                 hostdf["SNMAGSHIFT"] = snmagshift
 
         if ra_dec_unit == "degrees":
@@ -335,8 +339,7 @@ class OpSimSurvey:
         )
         for idx in obs_idx:
             if formatobs:
-                yield self.formatObs(self.opsimdf.iloc[idx], 
-                                     keep_keys=keep_keys)
+                yield self.formatObs(self.opsimdf.iloc[idx], keep_keys=keep_keys)
             else:
                 yield self.opsimdf.iloc[idx]
 
@@ -349,7 +352,7 @@ class OpSimSurvey:
             Format the observation to get only quantities of interest for simulation, by default True
         keep_keys : list(str)
             List of keys to keep in addition to formatted quantities
-            
+
         Yields
         ------
         pandas.DatFrame
@@ -359,7 +362,7 @@ class OpSimSurvey:
             *self.survey[["hp_ra", "hp_dec"]].values.T,
             is_deg=False,
             formatobs=formatobs,
-            keep_keys=keep_keys
+            keep_keys=keep_keys,
         )
 
     def get_survey_hosts(self, nworkers=10):
@@ -380,7 +383,6 @@ class OpSimSurvey:
 
         if self.host is None:
             raise ValueError("No host file set.")
-        
 
         # Cut in 2 circles that intersect edge limits (0, 2PI)
         _SPHERE_LIMIT_LOW_ = shp_geo.LineString([[0, -np.pi / 2], [0, np.pi / 2]])
@@ -495,9 +497,7 @@ class OpSimSurvey:
                 "ZPT": ZPT,
                 "SKYSIG": SKYSIG,
                 "BAND": OpSimObs["filter"],
-                **{
-                    k :  OpSimObs[k] for k in keep_keys
-                }
+                **{k: OpSimObs[k] for k in keep_keys},
             }
         ).reset_index(names="ObsID")
 
