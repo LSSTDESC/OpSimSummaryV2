@@ -145,3 +145,99 @@ def dataline(expMJD, ObsID, BAND, CCDgain, CCDnoise, SKYSIG, PSF, ZPT, ZPTNoise)
         f"{-99.:+7.3f} "
     )
     return l
+
+def read_SNANA_WGTMAP(file):
+    """Read a SNANA HOSTLIB WGTMAP
+
+    Parameters
+    ----------
+    file : str
+        path to WGTMAP
+
+    Returns
+    -------
+    list(str), dict
+        list of varnames, WGTMAP as a dict
+
+    Raises
+    ------
+    ValueError
+        No WGT key
+    """    
+    f = open(file, "r")
+
+    data_starts = False
+    for l in f:
+        if 'VARNAMES_WGTMAP' in l:
+            var_names = l.split()[1:]
+            data = {k: [] for k in var_names}
+            data_starts = True
+        elif data_starts and 'WGT:' in l:
+            for k, val in zip(var_names, l.split()[1:]):
+                data[k].append(float(val))
+    f.close()
+    for k in data:
+        data[k] = np.array(data[k])
+        
+    if 'WGT' in var_names:
+        var_names.remove('WGT')
+    else:
+        raise ValueError("WGTMAP require 'WGT' key")
+    if 'SNMAGSHIFT' in var_names:
+        var_names.remove('SNMAGSHIFT')
+    return var_names, data
+
+def host_resampler(wgt_map_VAR, wgt_map_WGT, index, values, cdf_cut=0.95):
+    """Resample host according to a WGTMAP
+
+    Parameters
+    ----------
+    wgt_map_VAR : numpy.array(float)
+        Variable of the WGTMAP
+    wgt_map_WGT : numpy.array(float)
+        Weight values of the WGTMAP
+    index : numpy.array(int)
+        Index of hosts
+    values : numpy.array(float)
+        Values of the Variable for host
+    cdf_cut : float, optional
+        A cut on the cdf to adjust , by default 0.95
+
+    Returns
+    -------
+    _type_
+        _description_
+    """    
+    count, edges = np.histogram(values, bins='rice')
+    medges = (edges[1:] + edges[:-1]) * 0.5
+    
+    prob_select = count * np.interp(medges, wgt_map_VAR, wgt_map_WGT)
+    cdf = np.cumsum(prob_select) 
+    cdf /= cdf[-1]
+
+    argmax = np.argmax(prob_select)
+    count_max = count[argmax]
+    prob_select_max = prob_select[argmax]
+    
+    N_to_draw = np.rint(prob_select / prob_select_max * count_max)
+    cdf_mask = (cdf > 1.0 - cdf_cut) & (cdf < cdf_cut)
+    correction_coeff = np.min(count[cdf_mask] / N_to_draw[cdf_mask])
+    
+    N_to_draw = np.rint(N_to_draw * correction_coeff).astype('int')
+    
+    wgt_values = np.interp(values, wgt_map_VAR, wgt_map_WGT)
+
+    keep_idx = []
+    for i, N in enumerate(N_to_draw):
+        edmin, edmax = edges[i], edges[i + 1]
+        mask = (values >= edmin) & (values < edmax)
+        
+        sdf_index = index[mask]
+
+        if len(sdf_index) <  N:
+            keep_idx.extend(sdf_index)
+        elif N > 0:    
+            wgt = wgt_values[mask]
+            wgt /= np.sum(wgt)
+            keep_idx.extend(np.random.choice(sdf_index, size=N, replace=False, p=wgt))
+    return keep_idx

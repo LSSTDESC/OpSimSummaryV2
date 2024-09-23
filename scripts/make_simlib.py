@@ -49,6 +49,14 @@ parser.add_argument('--max_MJD',
                     help='Maximum date to query',
                     default=None, type=float)
 
+parser.add_argument('--min_visits',
+                    help='Minimum observation visits',
+                    default=None, type=float)
+
+parser.add_argument('--max_visits',
+                    help='Maximum observation visits',
+                    default=20000, type=float)
+
 parser.add_argument('--output_dir',
                     help='Output dir or file for the SIMLIB',
                     default='./')
@@ -65,6 +73,9 @@ parser.add_argument('--n_cpu',
                     help='Number of cpu to use for matching survey and hosts.',
                     default=10, type=int)
 
+parser.add_argument('--snana_wgtmap',
+                    help='SNANA WGTMAP to apply to host.',
+                    default=None, type=str)
 
 args = parser.parse_args()
 
@@ -80,15 +91,22 @@ if args.max_MJD is not None:
     else:
         MJDrange = [0, args.max_MJD]
 
+host_config = {
+    'col_ra': args.hf_RA_col, 
+    'col_dec': args.hf_DEC_col,
+    'ra_dec_unit':  args.hf_radec_unit
+    }
+
+if args.snana_wgtmap is not None:
+    host_config['wgt_map'] = args.snana_wgtmap
+
 OpSimSurv = op.OpSimSurvey(args.db_file, 
                            MJDrange=MJDrange,
                            host_file=args.host_file,
-                           host_config={'col_ra': args.hf_RA_col, 
-                                        'col_dec': args.hf_DEC_col,
-                                        'ra_dec_unit':  args.hf_radec_unit})
+                           host_config=host_config)
 
 # Compute healpy rep
-OpSimSurv.compute_hp_rep(nside=256, minVisits=500, maxVisits=10000)
+OpSimSurv.compute_hp_rep(nside=256, minVisits=args.min_visits, maxVisits=args.max_visits)
 
 # Sample survey
 OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=args.n_cpu)

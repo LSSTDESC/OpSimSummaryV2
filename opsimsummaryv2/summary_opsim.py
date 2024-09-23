@@ -145,7 +145,8 @@ class OpSimSurvey:
         return df.sort_values(by="observationStartMJD")
 
     def _read_host_file(
-        self, host_file, col_ra="ra", col_dec="dec", ra_dec_unit="radians"
+        self, host_file, col_ra="ra", col_dec="dec", ra_dec_unit="radians", 
+        wgt_map=None,
     ):
         """Read a parquet file containing hosts.
 
@@ -170,8 +171,30 @@ class OpSimSurvey:
             return None
 
         print("Reading host from {}".format(host_file))
-
         hostdf = pd.read_parquet(host_file)
+        
+        if wgt_map is not None:
+            print(f'Reading and applying HOST WGT MAP from {wgt_map}')
+            var_names, wgt_map = ut.read_SNANA_WGTMAP(wgt_map)
+            if len(var_names) > 1:
+                raise NotImplementedError('HOST RESAMPLING ONLY WORK FOR 1 VARIABLES')
+            keep_index = ut.host_resampler(
+                wgt_map[var_names[0]],
+                wgt_map['WGT'],
+                hostdf.index.values,
+                hostdf[var_names[0]].values
+            )
+            
+            hostdf = hostdf.loc[keep_index]
+            
+            if 'SNMAGSHIFT' in wgt_map:
+                snmagshift = np.zeros(len(hostdf))
+                for i in range(len(wgt_map['WGT'])-1):
+                    mask = np.ones(len(hostdf), dtype=bool)
+                    for v in var_names:
+                        mask &= hostdf[v].between(wgt_map[v][i], wgt_map[v][i + 1])
+                    snmagshift[mask] = wgt_map['SNMAGSHIFT'][i]
+                hostdf["SNMAGSHIFT"] = snmagshift
 
         if ra_dec_unit == "degrees":
             hostdf[col_ra] += 360 * (hostdf[col_ra] < 0)
@@ -186,7 +209,7 @@ class OpSimSurvey:
         hostdf.attrs["file"] = host_file
         return hostdf
 
-    def compute_hp_rep(self, nside=256, minVisits=500, maxVisits=100000):
+    def compute_hp_rep(self, nside=256, minVisits=500, maxVisits=100_000):
         """Compute a healpy version of the survey.
 
         Parameters
@@ -357,6 +380,7 @@ class OpSimSurvey:
 
         if self.host is None:
             raise ValueError("No host file set.")
+        
 
         # Cut in 2 circles that intersect edge limits (0, 2PI)
         _SPHERE_LIMIT_LOW_ = shp_geo.LineString([[0, -np.pi / 2], [0, np.pi / 2]])
