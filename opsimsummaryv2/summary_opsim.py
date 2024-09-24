@@ -151,6 +151,7 @@ class OpSimSurvey:
         col_dec="dec",
         ra_dec_unit="radians",
         wgt_map=None,
+        add_SNMAGSHIFT=False
     ):
         """Read a parquet file containing hosts.
 
@@ -191,7 +192,7 @@ class OpSimSurvey:
 
             hostdf = hostdf.loc[keep_index]
 
-            if "SNMAGSHIFT" in wgt_map:
+            if add_SNMAGSHIFT and "SNMAGSHIFT" in wgt_map:
                 snmagshift = np.zeros(len(hostdf))
                 for i in range(len(wgt_map["WGT"]) - 1):
                     mask = np.ones(len(hostdf), dtype=bool)
