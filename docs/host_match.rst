@@ -42,3 +42,18 @@ these 3 distributions for the WGTMAP of DES using the Wiseman 2021 distribution 
 .. figure:: _static/Host_Mass_dist.png
 
     *Figure 2:* Distribution of host masses, probability of being a SN Ia host knowing the host mass and distribution of probability to be a SN Ia host. 
+
+In order to match the targeted distribution OpSimSummaryV2, the host are binned and then the count in the bin that corresponds to the peak of the target distribution :math:`P_\mathrm{max}` is 
+take as the reference :math:`N_\mathrm{peak}` and the number of host to draw from each bin :math:`b` is computed as
+
+.. math::
+    N_b = \frac{P_b}{P_\mathrm{max}} N_\mathrm{peak},
+
+where :math:`P_b` is the targeted distribution evalueted at the center of bin :math:`b`.
+
+It can happens that :math:`N_b` is larger than the available number of host :math:`N_\mathrm{available}` in the bin :math:`b`. A possible way to handle that is to force :math:`N_b = N_\mathrm{available}`,
+but it can lead to transform the shape of the distribution.
+
+To correct for that the :math:`N_b` are multiplied by a factor :math:`C`. 
+This factor is computed as the minimum of the ratio :math:`N_\mathrm{available} / N_b` for the bins that satisfy the 
+criterium to be inside the interval [5%, 95%] of the target distribution' cdf.

@@ -70,27 +70,25 @@ The `make_simlib.py` script available on the github repository is meant to help 
 
     $ python ../script/make_simlib.py -h
 
-    usage: OpSimSummaryV2 script [-h] [--Nfields NFIELDS] [--host_file HOST_FILE]
-                             [--hf_RA_col HF_RA_COL] [--hf_DEC_col HF_DEC_COL]
-                             [--hf_radec_unit HF_RADEC_UNIT]
-                             [--min_MJD MIN_MJD] [--max_MJD MAX_MJD]
-                             [--output_dir OUTPUT_DIR]
-                             [--random_seed RANDOM_SEED]
-                             [--limit_numpy_threads LIMIT_NUMPY_THREADS]
-                             [--n_cpu N_CPU]
-                             db_file
+    usage: OpSimSummaryV2 script [-h] [--Nfields NFIELDS] [--host_file HOST_FILE] [--author AUTHOR] [--hf_RA_col HF_RA_COL] [--hf_DEC_col HF_DEC_COL]
+                                [--hf_radec_unit HF_RADEC_UNIT] [--min_MJD MIN_MJD] [--max_MJD MAX_MJD] [--min_visits MIN_VISITS]
+                                [--max_visits MAX_VISITS] [--output_dir OUTPUT_DIR] [--random_seed RANDOM_SEED]
+                                [--limit_numpy_threads LIMIT_NUMPY_THREADS] [--n_cpu N_CPU] [--snana_wgtmap SNANA_WGTMAP]
+                                db_file
 
     Execute OpSimSummaryV2 to create a SIMLIB from a OpSim output database.
 
     positional arguments:
     db_file               absolute path to the opsim database.
 
-    optional arguments:
+    options:
     -h, --help            show this help message and exit
     --Nfields NFIELDS, -Nf NFIELDS
                             Number of fields to sample
     --host_file HOST_FILE, -hf HOST_FILE
                             absolute path to a host file.
+    --author AUTHOR, -auth AUTHOR
+                            Author of the file.
     --hf_RA_col HF_RA_COL, -hfra HF_RA_COL
                             RA column keys in host file
     --hf_DEC_col HF_DEC_COL, -hfdec HF_DEC_COL
@@ -99,6 +97,10 @@ The `make_simlib.py` script available on the github repository is meant to help 
                             DEC column keys in host file
     --min_MJD MIN_MJD     Minimum date to query
     --max_MJD MAX_MJD     Maximum date to query
+    --min_visits MIN_VISITS
+                            Minimum observation visits
+    --max_visits MAX_VISITS
+                            Maximum observation visits
     --output_dir OUTPUT_DIR
                             Output dir or file for the SIMLIB
     --random_seed RANDOM_SEED, -rs RANDOM_SEED
@@ -106,4 +108,5 @@ The `make_simlib.py` script available on the github repository is meant to help 
     --limit_numpy_threads LIMIT_NUMPY_THREADS, -np_threads LIMIT_NUMPY_THREADS
                             Limit the number of threads numpy could use.
     --n_cpu N_CPU         Number of cpu to use for matching survey and hosts.
-
+    --snana_wgtmap SNANA_WGTMAP
+                            SNANA WGTMAP to apply to host.
