@@ -51,11 +51,11 @@ parser.add_argument('--max_MJD',
 
 parser.add_argument('--min_visits',
                     help='Minimum observation visits',
-                    default=None, type=float)
+                    default=100, type=int)
 
 parser.add_argument('--max_visits',
                     help='Maximum observation visits',
-                    default=20000, type=float)
+                    default=20000, type=int)
 
 parser.add_argument('--output_dir',
                     help='Output dir or file for the SIMLIB',
