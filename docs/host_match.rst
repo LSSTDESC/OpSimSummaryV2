@@ -31,10 +31,10 @@ a SN Ia host.
 
     *Figure 1:* Distribution of host masses in an example Uchuu mock. 
 
-The target distribution that we want to match is the probability of being a SN Ia host :math:`\mathcal{P}(H)` that can be written
+If we define :math:`H` the event *beeing a SN Ia host*, the target distribution that we want to match is the mass distribution among SN Ia host :math:`\mathcal{P}(M | H)` that can be written
 
 .. math::
-    \mathcal{P}(H) = \mathcal{P}(H | M) \mathcal{P}(M),
+    \mathcal{P}(M | H) \propto \mathcal{P}(H | M) \mathcal{P}(M),
 
 where :math:`\mathcal{P}(M)` is the distribution of mass in the host catalog and :math:`\mathcal{P}(H | M)` is given by the WGTMAP. We plot in Fig 2 
 these 3 distributions for the WGTMAP of DES using the Wiseman 2021 distribution for SN Ia host masses.
