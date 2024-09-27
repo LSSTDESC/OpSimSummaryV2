@@ -51,7 +51,7 @@ parser.add_argument('--max_MJD',
 
 parser.add_argument('--min_visits',
                     help='Minimum observation visits',
-                    default=100, type=int)
+                    default=500, type=int)
 
 parser.add_argument('--max_visits',
                     help='Maximum observation visits',
