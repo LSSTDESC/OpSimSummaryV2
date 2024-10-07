@@ -299,14 +299,29 @@ class OpSimSurvey:
         rng = np.random.default_rng(seed)
 
         self._survey = self.hp_rep.sample(n=N_fields, replace=False, random_state=rng)
-        self._survey.reset_index(inplace=True)
         self._survey.attrs = self.hp_rep.attrs.copy()
         self._survey.attrs["N_fields"] = N_fields
 
         if self.host is not None:
             print("Compute survey hosts")
             self._survey_hosts = self.get_survey_hosts(nworkers=nworkers)
-
+            
+    def get_obs_from_hpix(self, nside, hpix, formatobs=True, keep_keys=[]):
+        ra, dec = np.radians(hp.pix2ang(nside, hpix, lonlat=True))
+        obs_idx = self.tree.query_radius(
+            np.array([dec, ra]).reshape(1, -1),
+            r=self.__LSST_FIELD_RADIUS__,
+            count_only=False,
+            return_distance=False,
+        )[0]
+        if len(obs_idx) == 0:
+            print('No observations in this healpy pixel.')
+            return None
+        elif formatobs:
+            return self.formatObs(self.opsimdf.iloc[obs_idx], keep_keys=keep_keys)
+        else:
+            return self.opsimdf.iloc[obs_idx] 
+        
     def get_obs_from_coords(self, ra, dec, is_deg=True, formatobs=False, keep_keys=[]):
         """Get observations at ra, dec coordinates.
 
@@ -328,6 +343,9 @@ class OpSimSurvey:
         pandas.DatFrame
             Dataframes of observations.
         """
+        ra = np.atleast_1d(ra)
+        dec = np.atleast_1d(dec)
+        
         if is_deg:
             ra = np.radians(ra)
             dec = np.radians(dec)
@@ -343,7 +361,7 @@ class OpSimSurvey:
                 yield self.formatObs(self.opsimdf.iloc[idx], keep_keys=keep_keys)
             else:
                 yield self.opsimdf.iloc[idx]
-
+                
     def get_survey_obs(self, formatobs=True, keep_keys=[]):
         """Get survey observations.
 

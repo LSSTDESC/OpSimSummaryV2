@@ -146,6 +146,7 @@ class SNANA_Simlib(SimWriter):
             doc += "        ASSOCIATED HOSTLIB: {}\n".format(
                 self.out_path.with_suffix(".HOSTLIB").absolute()
             )
+        doc += f"        PARAMS HEALPY NSIDE: {self.OpSimSurvey.hp_rep.attrs['nside']}\n"
         doc += "    VERSIONS:\n"
         doc += f'    - DATE : {self.date_time.strftime(format="%y-%m-%d")}\n'
         doc += f"    AUTHORS : {self.author_name}, OpSimSummaryV2 version {oss.__version__}\n"
@@ -187,7 +188,7 @@ class SNANA_Simlib(SimWriter):
         header += "BEGIN LIBGEN\n"
         return header
 
-    def LIBheader(self, LIBID, ra, dec, opsimdf, mwebv=0.0, groupID=None):
+    def LIBheader(self, LIBID, ra, dec, opsimdf, HPIX=None, groupID=None, mwebv=0.0):
         """Give the string of the header of a LIB entry.
 
         Parameters
@@ -200,10 +201,12 @@ class SNANA_Simlib(SimWriter):
             Dec [deg] coordinate of the entry
         opsimdf : pandas.DataFrame
             LIB entry observations
-        mwebv: float, optional
-            MWEBV of the entry, default = 0.0
+        HPIX: int, optional
+            Healpy index of the LIBID.
         groupID : int, optional
             GROUPID of the entry used to match with HOSTLIB hosts.
+        mwebv: float, optional
+            MWEBV of the entry, default = 0.0
 
         Returns
         -------
@@ -214,11 +217,13 @@ class SNANA_Simlib(SimWriter):
         # String formatting
         s = "# --------------------------------------------" + "\n"
         s += "LIBID: {0:10d}".format(LIBID) + "\n"
-        tmp = "RA: {0:+10.6f} DEC: {1:+10.6f}   NOBS: {2:10d} MWEBV: {3:5.2f}"
+        tmp = "RA: {0:+10.6f} DEC: {1:+10.6f} NOBS: {2:10d} MWEBV: {3:5.2f}"
         tmp += " PIXSIZE: {4:5.3f}"
         s += (
             tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__) + "\n"
         )
+        if HPIX is not None:
+            s += f"HPIX: {HPIX}" + "\n"
         if groupID is not None:
             s += f"HOSTLIB_GROUPID: {groupID}" + "\n"
         s += "#                           CCD  CCD         PSF1 PSF2 PSF2/1" + "\n"
@@ -312,9 +317,9 @@ class SNANA_Simlib(SimWriter):
 
             bcount = 0
             simlibstr = ""
-            for (i, field), obs in zip(
+            for i, ((HPIX, field), obs) in enumerate(zip(
                 self.OpSimSurvey.survey.iterrows(), self.OpSimSurvey.get_survey_obs()
-            ):
+            )):
                 LIBID = i
                 RA = np.degrees(field.hp_ra)
                 DEC = np.degrees(field.hp_dec)
@@ -323,7 +328,7 @@ class SNANA_Simlib(SimWriter):
                 else:
                     groupID = None
 
-                simlibstr += self.LIBheader(LIBID, RA, DEC, obs, groupID=groupID)
+                simlibstr += self.LIBheader(LIBID, RA, DEC, obs, HPIX=HPIX, groupID=groupID)
                 simlibstr += self.LIBdata(obs)
                 simlibstr += self.LIBfooter(LIBID)
 
