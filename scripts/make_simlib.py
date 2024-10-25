@@ -150,5 +150,5 @@ OpSimSurv.compute_hp_rep(nside=256, minVisits=minVisits, maxVisits=maxVisits)
 OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=args.n_cpu)
 
 # Write the SIMLIB
-sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author, NOTES=NOTES)
+sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author, NOTES=NOTES, file_suffix=file_suffix)
 sim.write_SIMLIB(write_batch_size=100)
