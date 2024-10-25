@@ -115,16 +115,17 @@ minVisits = args.min_visits
 maxVisits = args.max_visits
 NOTES['WARNING_NOTICE'] = f'DDF approximately determined by nobs>={args.wfd_ddf_nobs_thresh}'
 
+file_suffix = '_all'
 if args.wfd_only and args.ddf_only:
     raise ValueError('wfd_only and ddf_only options can not be set at the same time')
 elif args.wfd_only:
     print(f'Replace max_visits by WFD/DDF threshold: nobs < {args.wfd_ddf_nobs_thresh}')
     maxVisits = args.wfd_ddf_nobs_thresh
-    file_suffix = '_wfd'
+    file_suffix = '_WFD'
 elif args.ddf_only:
     print(f'Replace min_visits by WFD/DDF threshold: nobs >= {args.wfd_ddf_nobs_thresh}')
     minVisits = args.wfd_ddf_nobs_thresh
-    file_suffix = '_ddf'
+    file_suffix = '_DDF'
 
 
 host_config = {
