@@ -1,7 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/opsimsummaryv2/badge/?version=latest)](https://opsimsummaryv2.readthedocs.io/en/latest/?badge=latest)
 
 ## Presentation
-`OpSimSummaryV2` is a rework of the previous [`OpSimSummary`](https://github.com/LSSTDESC/OpSimSummary) library. This code is developed to interact with the LSST Operations Simulator outputs available [here](http://astro-lsst-01.astro.washington.edu:8080/?runId=1). The OpSim output can be converted into simulation inputs: [SNANA](https://github.com/RickKessler/SNANA) SIMLIB files or [SNSim](https://github.com/bastiencarreres/snsim) observations files.
+`OpSimSummaryV2` is a rework of the previous [`OpSimSummary`](https://github.com/LSSTDESC/OpSimSummary) library. This code is developed to interact with the LSST Operations Simulator outputs available [here](https://s3df.slac.stanford.edu/data/rubin/sim-data/). The OpSim output can be converted into simulation inputs: [SNANA](https://github.com/RickKessler/SNANA) SIMLIB files or [SNSim](https://github.com/bastiencarreres/snsim) observations files.
 
 ## Documentation
 See the [ReadTheDoc page](https://opsimsummaryv2.readthedocs.io/en/latest/installation.html) (under construction).
