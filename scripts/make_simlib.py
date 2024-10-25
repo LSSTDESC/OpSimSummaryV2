@@ -1,5 +1,7 @@
 import opsimsummaryv2 as op
 import argparse
+import sys
+from pathlib import Path
 
 def limit_numpy(threads=4):
     import os
@@ -55,10 +57,10 @@ parser.add_argument('--min_visits',
 
 parser.add_argument('--max_visits',
                     help='Maximum observation visits',
-                    default=20000, type=int)
+                    default=100000, type=int)
 
 parser.add_argument('--output_dir',
-                    help='Output dir or file for the SIMLIB',
+                    help='Output dir for the SIMLIB',
                     default='./')
 
 parser.add_argument('--random_seed', '-rs',
@@ -77,9 +79,26 @@ parser.add_argument('--snana_wgtmap',
                     help='SNANA WGTMAP to apply to host.',
                     default=None, type=str)
 
+parser.add_argument('--wfd_only',
+                    help="Only write WFD",
+                    action='store_true')
+
+parser.add_argument('--ddf_only',
+                    help="Only write WFD",
+                    action='store_true')
+
+parser.add_argument('--wfd_ddf_nobs_thresh', 
+                    help='Number of observations threshold between WFD and DDF fields',
+                    default=1100, type=int)
+
 args = parser.parse_args()
 
 limit_numpy(args.limit_numpy_threads)
+
+command = sys.argv.copy()
+command[0] = Path(command[0]).name
+NOTES = {'COMMAND': str(command)}
+
 
 # format MJD range
 MJDrange = None
@@ -90,6 +109,23 @@ if args.max_MJD is not None:
         MJDrange[1] = args.max_MJD
     else:
         MJDrange = [0, args.max_MJD]
+        
+# Set min and max visits
+minVisits = args.min_visits
+maxVisits = args.max_visits
+NOTES['WARNING_NOTICE'] = f'DDF approximately determined by nobs>={args.wfd_ddf_nobs_thresh}'
+
+if args.wfd_only and args.ddf_only:
+    raise ValueError('wfd_only and ddf_only options can not be set at the same time')
+elif args.wfd_only:
+    print(f'Replace max_visits by WFD/DDF threshold: nobs < {args.wfd_ddf_nobs_thresh}')
+    maxVisits = args.wfd_ddf_nobs_thresh
+    file_suffix = '_wfd'
+elif args.ddf_only:
+    print(f'Replace min_visits by WFD/DDF threshold: nobs >= {args.wfd_ddf_nobs_thresh}')
+    minVisits = args.wfd_ddf_nobs_thresh
+    file_suffix = '_ddf'
+
 
 host_config = {
     'col_ra': args.hf_RA_col, 
@@ -100,19 +136,19 @@ host_config = {
 if args.snana_wgtmap is not None:
     host_config['wgt_map'] = args.snana_wgtmap
 
-OpSimSurv = op.OpSimSurvey(args.db_file, 
-                           MJDrange=MJDrange,
-                           host_file=args.host_file,
-                           host_config=host_config)
+OpSimSurv = op.OpSimSurvey(
+    args.db_file, 
+    MJDrange=MJDrange,
+    host_file=args.host_file,
+    host_config=host_config
+    )
 
 # Compute healpy rep
-OpSimSurv.compute_hp_rep(nside=256, minVisits=args.min_visits, maxVisits=args.max_visits)
+OpSimSurv.compute_hp_rep(nside=256, minVisits=minVisits, maxVisits=maxVisits)
 
 # Sample survey
 OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=args.n_cpu)
 
 # Write the SIMLIB
-sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author)
+sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author, NOTES=NOTES)
 sim.write_SIMLIB(write_batch_size=100)
-
-
