@@ -91,6 +91,12 @@ parser.add_argument('--wfd_ddf_nobs_thresh',
                     help='Number of observations threshold between WFD and DDF fields',
                     default=1100, type=int)
 
+parser.add_argument('--simlib_coadd', 
+                    help='Run SNANA simlib_coadd.exe',
+                    action='store_true')
+
+
+
 args = parser.parse_args()
 
 limit_numpy(args.limit_numpy_threads)
@@ -153,3 +159,10 @@ OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=arg
 # Write the SIMLIB
 sim = op.sim_io.SNANA_Simlib(OpSimSurv, out_path=args.output_dir, author_name=args.author, NOTES=NOTES, file_suffix=file_suffix)
 sim.write_SIMLIB(write_batch_size=100)
+
+if args.simlib_coadd:
+    import subprocess
+    SNANA_DIR = os.environ['SNANA_DIR']
+    if SNANA_DIR is None:
+        raise ValueError("$SNANA_DIR need to be defined to use coadd")
+    subprocess.Popen(f'{SNANA_DIR}/bin/simlib_coadd.exe {sim.out_path} SORT_BAND', shell=True)

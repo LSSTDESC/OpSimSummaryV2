@@ -29,19 +29,21 @@ class SimWriter:
         CCDgain=1.0,
         CCDnoise=0.25,
         outfile_ext=".SIMLIB",
-        file_suffix=''
+        file_suffix="",
     ):
 
         self.OpSimSurvey = OpSimSurvey
         self.author_name = author_name
-        self.out_path = self._init_out_path(out_path, outfile_ext, file_suffix=file_suffix)
+        self.out_path = self._init_out_path(
+            out_path, outfile_ext, file_suffix=file_suffix
+        )
         self.date_time = datetime.datetime.now()
 
         self.ZPTNoise = ZPTNoise
         self.CCDnoise = CCDnoise
         self.CCDgain = CCDgain
 
-    def _init_out_path(self, out_path, outfile_ext, file_suffix=''):
+    def _init_out_path(self, out_path, outfile_ext, file_suffix=""):
         """Format output path for SIMLIB and HOSTLIB.
 
         Parameters
@@ -63,7 +65,9 @@ class SimWriter:
 
         if out_path.is_dir():
             out_path /= (
-                Path(self.OpSimSurvey.opsimdf.attrs["OpSimFile"]).stem + file_suffix + outfile_ext
+                Path(self.OpSimSurvey.opsimdf.attrs["OpSimFile"]).stem
+                + file_suffix
+                + outfile_ext
             )
 
         if self.OpSimSurvey.survey_hosts is not None:
@@ -102,11 +106,11 @@ class SNANA_Simlib(SimWriter):
         OpSimSurvey,
         out_path=None,
         author_name=None,
-        file_suffix='',
+        file_suffix="",
         ZPTNoise=0.005,
         CCDgain=1.0,
         CCDnoise=0.25,
-        NOTES={}
+        NOTES={},
     ):
         """Construct the SNANA Simlib class."""
         super().__init__(
@@ -118,7 +122,7 @@ class SNANA_Simlib(SimWriter):
             CCDgain=CCDgain,
             CCDnoise=CCDnoise,
         )
-        
+
         self.NOTES = NOTES
         self.dataline = self._init_dataline()
 
@@ -153,7 +157,7 @@ class SNANA_Simlib(SimWriter):
                 self.out_path.with_suffix(".HOSTLIB").absolute()
             )
         for notes, val in self.NOTES.items():
-            doc+= f"        {notes.upper()}: {val}\n"
+            doc += f"        {notes.upper()}: {val}\n"
         doc += "    VERSIONS:\n"
         doc += f'    - DATE : {self.date_time.strftime(format="%y-%m-%d")}\n'
         doc += f"    AUTHORS : {self.author_name}, OpSimSummaryV2 version {oss.__version__}\n"
@@ -195,7 +199,9 @@ class SNANA_Simlib(SimWriter):
         header += "BEGIN LIBGEN\n"
         return header
 
-    def LIBheader(self, LIBID, ra, dec, opsimdf, mwebv=0.0, groupID=None, field_label=None):
+    def LIBheader(
+        self, LIBID, ra, dec, opsimdf, mwebv=0.0, groupID=None, field_label=None
+    ):
         """Give the string of the header of a LIB entry.
 
         Parameters
@@ -224,11 +230,9 @@ class SNANA_Simlib(SimWriter):
         s += "LIBID: {0:10d}".format(LIBID) + "\n"
         tmp = "RA: {0:+10.6f} DEC: {1:+10.6f}   NOBS: {2:10d} MWEBV: {3:5.2f}"
         tmp += " PIXSIZE: {4:5.3f}"
-        s += (
-            tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__)
-        )
+        s += tmp.format(ra, dec, nobs, mwebv, self.OpSimSurvey.__LSST_pixelSize__)
         if field_label is not None:
-            s += f" FIELD: {field_label}" 
+            s += f" FIELD: {field_label}"
         if groupID is not None:
             s += f"\nHOSTLIB_GROUPID: {groupID}"
         s += "\n#                           CCD  CCD         PSF1 PSF2 PSF2/1" + "\n"
@@ -326,18 +330,19 @@ class SNANA_Simlib(SimWriter):
                 self.OpSimSurvey.survey.iterrows(), self.OpSimSurvey.get_survey_obs()
             ):
                 LIBID = i
-                RA = np.degrees(field['hp_ra'])
-                DEC = np.degrees(field['hp_dec'])
+                RA = np.degrees(field["hp_ra"])
+                DEC = np.degrees(field["hp_dec"])
                 if self.OpSimSurvey.survey_hosts is not None:
                     groupID = LIBID
                 else:
                     groupID = None
-                if 'field_label' in field:
-                    field_label = field['field_label']
+                if "field_label" in field:
+                    field_label = field["field_label"]
                 else:
                     field_label = None
-                simlibstr += self.LIBheader(LIBID, RA, DEC, obs, 
-                                            groupID=groupID, field_label=field_label)
+                simlibstr += self.LIBheader(
+                    LIBID, RA, DEC, obs, groupID=groupID, field_label=field_label
+                )
                 simlibstr += self.LIBdata(obs)
                 simlibstr += self.LIBfooter(LIBID)
 

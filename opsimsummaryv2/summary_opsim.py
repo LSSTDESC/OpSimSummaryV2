@@ -151,7 +151,7 @@ class OpSimSurvey:
         col_dec="dec",
         ra_dec_unit="radians",
         wgt_map=None,
-        add_SNMAGSHIFT=False
+        add_SNMAGSHIFT=False,
     ):
         """Read a parquet file containing hosts.
 
@@ -214,9 +214,13 @@ class OpSimSurvey:
         hostdf.attrs["file"] = host_file
         return hostdf
 
-    def compute_hp_rep(self, nside=256, minVisits=500, maxVisits=100_000, 
-                       field_label_rules={'labels': ['WFD', 'DDF'], 
-                                          'nobs_thresh': [1100]}):
+    def compute_hp_rep(
+        self,
+        nside=256,
+        minVisits=500,
+        maxVisits=100_000,
+        field_label_rules={"labels": ["WFD", "DDF"], "nobs_thresh": [1100]},
+    ):
         """Compute a healpy version of the survey.
 
         Parameters
@@ -260,15 +264,20 @@ class OpSimSurvey:
         ) * len(self._hp_rep)
 
         if field_label_rules is not None:
-            if len(field_label_rules['labels']) != len(field_label_rules['nobs_thresh']) + 1:
-                raise ValueError("'nobs_thresh' should contains len(labels) - 1 values'")
-            field_labels = np.empty_like(self._hp_rep["n_visits"], dtype='U5')
-            thresholds = [0, *field_label_rules['nobs_thresh'], np.inf]
-            for i, fname in enumerate(field_label_rules['labels']):
+            if (
+                len(field_label_rules["labels"])
+                != len(field_label_rules["nobs_thresh"]) + 1
+            ):
+                raise ValueError(
+                    "'nobs_thresh' should contains len(labels) - 1 values'"
+                )
+            field_labels = np.empty_like(self._hp_rep["n_visits"], dtype="U5")
+            thresholds = [0, *field_label_rules["nobs_thresh"], np.inf]
+            for i, fname in enumerate(field_label_rules["labels"]):
                 mask = self._hp_rep["n_visits"] >= thresholds[i]
-                mask &= self._hp_rep["n_visits"] <= thresholds[i+1]
+                mask &= self._hp_rep["n_visits"] <= thresholds[i + 1]
                 field_labels[mask] = fname
-            self._hp_rep['field_label'] = field_labels
+            self._hp_rep["field_label"] = field_labels
         print(
             f"Finished compute healpy representation, total number of fields : {len(self._hp_rep)}."
         )

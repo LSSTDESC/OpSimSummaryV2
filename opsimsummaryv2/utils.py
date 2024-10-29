@@ -243,3 +243,63 @@ def host_resampler(wgt_map_VAR, wgt_map_WGT, index, values, cdf_cut=0.95):
             wgt /= np.sum(wgt)
             keep_idx.extend(np.random.choice(sdf_index, size=N, replace=False, p=wgt))
     return keep_idx
+
+
+def download_rubinlsst_baseline_dbfile(version, output_dir=None):
+    """Download a specific versio  of Opsim output.
+
+    Parameters
+    ----------
+    version : str
+        The version of OpSim output to download.
+    output_dir : str, optional
+        path of download, by default $SNANA_LSST_ROOT/simlibs/
+
+    Raises
+    ------
+    ValueError
+        _description_
+    """
+    import requests         
+    import time
+
+    if output_dir is None:
+        import os
+
+        SNANA_LSST_ROOT = os.environ["SNANA_LSST_ROOT"]
+        if SNANA_LSST_ROOT is None:
+            raise ValueError("Set an output_path or $SNANA_LSST_ROOT")
+        output_dir = SNANA_LSST_ROOT + "/simlibs/"
+
+    filename = f"baseline_v{version}_10yrs.db"
+
+    url = f"https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs{version}/"
+    url += f"baseline/" + filename
+
+    stime = time.time()
+    url_file = requests.get(url, stream=True)
+    file_size = int(url_file.headers.get('Content-Length', None))
+    block_size = 1024  # 1 KB
+    n_chuncks = int(np.ceil(file_size / block_size))
+    bar_size = 30
+    with open(output_dir + filename, "wb") as file:
+        for i, chunk in enumerate(url_file.iter_content(chunk_size=block_size)):
+            file.write(chunk)
+            
+            x = i / n_chuncks 
+            bar_prog = int(x * bar_size)
+            bar = f"[{u'='*bar_prog}{u'>' if (bar_prog < bar_size) else u'='}{u' '*(bar_size - bar_prog)}]"
+            if i > 0:
+                remaining_time = ((time.time() - stime) / i) * (n_chuncks - i)   
+            else: 
+                remaining_time = 0     
+            print(
+                (
+                    f"\rDownloading {filename} {x * 100:05.2f}% {bar}"
+                    f" Est. wait: {int(remaining_time // 60):02d}min:{int(remaining_time % 60):02d}sec"
+                ),
+                end="",
+                flush=True,
+            )
+    dtime = stime - time.time()
+    print(f"\nDownload completed in {dtime // 60:.0f}min:{dtime % 60:.2f}sec !")
