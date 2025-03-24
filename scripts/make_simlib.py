@@ -142,8 +142,8 @@ else:
 # CHECK & SET DB FILE
 db_file = Path(args.db_file)
 if not db_file.exists():
-    if SNANA_LSST_ROOT is not None and (Path(SNANA_LSST_ROOT) / db_file.name).exists():
-        db_file = Path(SNANA_LSST_ROOT) / db_file.name
+    if SNANA_LSST_ROOT is not None and (Path(SNANA_LSST_ROOT) / 'simlibs' / db_file.name).exists():
+        db_file = Path(SNANA_LSST_ROOT) / 'simlibs' / db_file.name
     elif args.download:
         import re
 
