@@ -150,7 +150,7 @@ if not db_file.exists():
         version = re.findall("v([0-9].[0-9])", db_file.name)
         print(f'Downloading OpSim output v{version}')
         op.utils.download_rubinlsst_baseline_dbfile(version[0], output_dir=str(output_dir))
-        db_file = Path(output_dir + f"baseline_v{version}_10yrs.db")
+        db_file = output_dir / f"baseline_v{version}_10yrs.db"
     else:
         raise ValueError(
             "db file does not exist please verify path or use -d flag to download it"
