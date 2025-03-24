@@ -266,7 +266,7 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
     if output_dir is None:
         import os
 
-        SNANA_LSST_ROOT = os.environ["SNANA_LSST_ROOT"]
+        SNANA_LSST_ROOT = os.getenv("SNANA_LSST_ROOT")
         if SNANA_LSST_ROOT is None:
             raise ValueError("Set an output_path or $SNANA_LSST_ROOT")
         output_dir = SNANA_LSST_ROOT + "/simlibs/"
@@ -292,14 +292,15 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
             if i > 0:
                 remaining_time = ((time.time() - stime) / i) * (n_chuncks - i)   
             else: 
-                remaining_time = 0     
-            print(
-                (
-                    f"\rDownloading {filename} {x * 100:05.2f}% {bar}"
-                    f" Est. wait: {int(remaining_time // 60):02d}min:{int(remaining_time % 60):02d}sec"
-                ),
-                end="",
-                flush=True,
-            )
+                remaining_time = 0 
+            if i%int(0.0005 * n_chuncks)==0 or x==1.:  
+                print(
+                    (
+                        f"\rDownloading {filename} {x * 100:05.2f}% {bar}"
+                        f" Est. wait: {int(remaining_time // 60):02d}min:{int(remaining_time % 60):02d}sec"
+                    ),
+                    end="",
+                    flush=True,
+                )
     dtime = stime - time.time()
     print(f"\nDownload completed in {dtime // 60:.0f}min:{dtime % 60:.2f}sec !")
