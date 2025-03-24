@@ -271,6 +271,8 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
             raise ValueError("Set an output_path or $SNANA_LSST_ROOT")
         output_dir = SNANA_LSST_ROOT + "/simlibs/"
 
+    output_dir = Path(output_dir)
+    
     filename = f"baseline_v{version}_10yrs.db"
 
     url = f"https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs{version}/"
@@ -282,7 +284,7 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
     block_size = 1024  # 1 KB
     n_chuncks = int(np.ceil(file_size / block_size))
     bar_size = 30
-    with open(output_dir + filename, "wb") as file:
+    with open(output_dir / filename, "wb") as file:
         for i, chunk in enumerate(url_file.iter_content(chunk_size=block_size)):
             file.write(chunk)
             
