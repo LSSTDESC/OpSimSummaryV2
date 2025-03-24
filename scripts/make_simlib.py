@@ -147,9 +147,9 @@ if not db_file.exists():
     elif args.download:
         import re
 
-        version = re.findall("v([0-9].[0-9])", db_file.name)
+        version = re.findall("v([0-9].[0-9])", db_file.name)[0]
         print(f'Downloading OpSim output v{version}')
-        op.utils.download_rubinlsst_baseline_dbfile(version[0], output_dir=str(output_dir))
+        op.utils.download_rubinlsst_baseline_dbfile(version, output_dir=str(output_dir))
         db_file = output_dir / f"baseline_v{version}_10yrs.db"
     else:
         raise ValueError(
