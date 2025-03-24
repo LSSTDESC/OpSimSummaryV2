@@ -94,7 +94,7 @@ parser.add_argument("--min_MJD", help="Minimum date to query", default=0, type=f
 
 parser.add_argument("--max_MJD", help="Maximum date to query", default=1e15, type=float)
 
-parser.add_argument("--output_dir", help="Output dir for the SIMLIB", default=None)
+parser.add_argument("--output_dir", help="Output dir for the SIMLIB. If not specified, the code will search for $", default=None)
 
 
 # Args computation
