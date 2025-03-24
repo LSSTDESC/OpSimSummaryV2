@@ -195,7 +195,12 @@ OpSimSurv = op.OpSimSurvey(
 )
 
 # Compute healpy rep
-OpSimSurv.compute_hp_rep(nside=256, minVisits=minVisits, maxVisits=maxVisits)
+OpSimSurv.compute_hp_rep(
+    nside=256, 
+    minVisits=minVisits, 
+    maxVisits=maxVisits,
+    field_label_rules={"labels": ["WFD", "DDF"], "nobs_thresh": [args.wfd_ddf_nobs_thresh]}
+    )
 
 # Sample survey
 OpSimSurv.sample_survey(args.Nfields, random_seed=args.random_seed, nworkers=args.n_cpu)
