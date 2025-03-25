@@ -14,7 +14,7 @@ of angular coordinates :math:`(\theta_f,\phi_f)`
 At second order (first order is null) this expression can be write
 
 .. math::
-    1 = \frac{\Delta\phi^2}{\Theta_\mathrm{Rubin}^2} + \frac{\Delta\theta^2}{\Theta_\mathrm{Rubin}^2}\frac{1 + \cos2\theta_f}{2}
+    1 = \frac{\Delta\phi^2}{\Theta_\mathrm{Rubin}^2} + \frac{\Delta\theta^2}{\Theta_\mathrm{Rubin}^2}\frac{1 + \cos2\phi_f}{2}
 
 where :math:`\Delta\phi = \phi - \phi_f` and :math:`\Delta\theta = \theta - \theta_f`. It corresponds to an ellipse where the axes along the RA angle is changing
 with Dec angle. All host that are lying inside this ellipse are matched with the corresponding field.
