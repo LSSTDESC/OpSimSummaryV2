@@ -1,6 +1,7 @@
 """This module contains usefull functions."""
 
 import numpy as np
+import gzip
 
 try:
     import geopandas as gpd
@@ -165,7 +166,10 @@ def read_SNANA_WGTMAP(file):
     ValueError
         No WGT key
     """
-    f = open(file, "r")
+    if file[-2:] == 'gz':
+        f = gzip.open(file, 'rt', encoding='utf-8')
+    else:
+        f = open(file, "r")
 
     data_starts = False
     for l in f:

@@ -31,7 +31,7 @@ parser.add_argument(
 
 # Args survey sampling
 parser.add_argument(
-    "--Nfields", "-Nf", help="Number of fields to sample.", default=50000, type=int
+    "--Nfields", "-Nf", help="Number of fields to sample.", default=50_000, type=int
 )
 
 parser.add_argument(
@@ -39,7 +39,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--max_visits", help="Maximum observation visits", default=100_000, type=int
+    "--max_visits", help="Maximum observation visits", default=1e15, type=int
 )
 
 parser.add_argument("--wfd_only", help="Only write WFD", action="store_true")
@@ -216,11 +216,11 @@ sim = op.sim_io.SNANA_Simlib(
 sim.write_SIMLIB(write_batch_size=100)
 
 if args.simlib_coadd:
-    import subprocess
+    import os
 
     SNANA_DIR = os.getenv("SNANA_DIR")
     if SNANA_DIR is None:
         raise ValueError("$SNANA_DIR need to be defined to use coadd")
-    subprocess.Popen(
-        f"{SNANA_DIR}/bin/simlib_coadd.exe {sim.out_path} SORT_BAND", shell=True
-    )
+    os.system(
+        f"{SNANA_DIR}/bin/simlib_coadd.exe {sim.out_path} SORT_BAND"
+        )
