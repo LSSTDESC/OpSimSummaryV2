@@ -4,7 +4,6 @@ import sys
 import os
 from pathlib import Path
 
-
 def limit_numpy(threads=4):
     os.environ["OMP_NUM_THREADS"] = "4"  # export OMP_NUM_THREADS=4
     os.environ["OPENBLAS_NUM_THREADS"] = "4"  # export OPENBLAS_NUM_THREADS=4
@@ -216,11 +215,13 @@ sim = op.sim_io.SNANA_Simlib(
 sim.write_SIMLIB(write_batch_size=100)
 
 if args.simlib_coadd:
-    import os
-
+    import subprocess
+    
+    print('\n\n#################\n\n')
+    print('Executing simlib_coadd.exe')
+    
     SNANA_DIR = os.getenv("SNANA_DIR")
     if SNANA_DIR is None:
         raise ValueError("$SNANA_DIR need to be defined to use coadd")
-    os.system(
-        f"{SNANA_DIR}/bin/simlib_coadd.exe {sim.out_path} SORT_BAND"
-        )
+    p = subprocess.run([f"{SNANA_DIR}/bin/simlib_coadd.exe", f"{sim.out_path}", "SORT_BAND"])
+    print('Return code:', p.returncode)
