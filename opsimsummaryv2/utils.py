@@ -13,6 +13,11 @@ except ImportError:
     use_geopandas = False
 
 
+def compute_angle_sep(ra_arr: np.array, dec_arr: np.array, ra: float, dec: float):
+    cos_theta = np.cos(ra_arr - ra) * np.cos(dec) * np.cos(dec_arr) 
+    cos_theta += np.sin(dec) * np.sin(dec_arr)
+    return np.arccos(np.clip(cos_theta, -1, 1))
+
 def format_poly(poly):
     """Fromat polygon that cross the 2 PI edge.
 
