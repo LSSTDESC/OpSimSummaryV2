@@ -51,7 +51,7 @@ class OpSimSurvey:
     __LSST_FIELD_RADIUS__ = np.radians(1.75)  # LSST Field Radius in radians
     __LSST_pixelSize__ = 0.2  # LSST Pixel size in arcsec^-1
     __LSST_DDF_TAGS__ = {
-        'TAGS': np.array(['ELAISS1', 'XMM_LSS', 'ECDFS', 'EDFS_a', 'EDFS_b']),
+        'TAGS': np.array(['ELAISS1', 'XMM_LSS', 'ECDFS', 'COSMOS', 'EDFS_a', 'EDFS_b']),
         'RA': np.array([9.45, 35.71, 53.12, 150.10, 58.90, 63.60]),
         'Dec': np.array([-44.00, -4.75, -28.10, 2.18, -49.32, -47.60])
         }
@@ -225,6 +225,8 @@ class OpSimSurvey:
         minVisits=500,
         maxVisits=100_000,
         ddf_nobs_thresh=1100,
+        add_ddf_tag=False,
+        angle_sep_tol=10
     ):
         """Compute a healpy version of the survey.
 
@@ -268,17 +270,33 @@ class OpSimSurvey:
             self.hp_rep.attrs["nside"], degrees=False
         ) * len(self._hp_rep)
 
-       
-        field_labels = np.empty_like(self._hp_rep["n_visits"], dtype="U5")
+        field_labels = np.empty_like(self._hp_rep["n_visits"], dtype="U20")
         ddf_mask = self._hp_rep["n_visits"] >= ddf_nobs_thresh
+        
+        # WFD naming
         field_labels[~ddf_mask] = 'WFD'
         
+        # DDF naming
         if add_ddf_tag:
-            angle_sep_to_field = np.empty((len(RA), len(__LSST_DDF_TAGS__['TAGS'])), dtype='float32')
-            for i, (R, D) in enumerate(zip(__LSST_DDF_TAGS__['RA'], __LSST_DDF_TAGS__['Dec'])):
-                angle_sep_to_field[i] = 
-
+            angle_sep_to_field = np.empty((len(self.hp_rep["hp_ra"]), 
+                                           len(self.__LSST_DDF_TAGS__['TAGS'])),
+                                          dtype='float32')
+            
+            for i, (R, D) in enumerate(zip(self.__LSST_DDF_TAGS__['RA'], self.__LSST_DDF_TAGS__['Dec'])):
+                angle_sep_to_field.T[i] = ut.compute_angle_sep(
+                        self.hp_rep["hp_ra"].values, 
+                        self.hp_rep["hp_dec"].values,
+                        np.deg2rad(R), np.deg2rad(D)
+                    )
+            angle_sep_argmins = np.argmin(angle_sep_to_field, axis=1)
+            angle_sep_min =  np.min(angle_sep_to_field, axis=1)
+            ddf_tags = np.char.add('DDF_' , self.__LSST_DDF_TAGS__['TAGS'][angle_sep_argmins])
+            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = 'DDF_NONE'
+        else:
+            ddf_tags = 'DDF'
         
+        field_labels[ddf_mask] = ddf_tags
+
         self._hp_rep["field_label"] = field_labels
         
         print(
