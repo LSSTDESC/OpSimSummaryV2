@@ -50,12 +50,23 @@ class OpSimSurvey:
 
     __LSST_FIELD_RADIUS__ = np.radians(1.75)  # LSST Field Radius in radians
     __LSST_pixelSize__ = 0.2  # LSST Pixel size in arcsec^-1
+    # DDF from https://survey-strategy.lsst.io/baseline/ddf.html
+    __LSST_DDF_TAGS__ = {
+        "TAGS": np.array(
+            ["ELAISS1", "XMM_LSS", "ECDFS", "COSMOS", "EDFS_a", "EDFS_b"]
+        ),  # Name of DDF fields
+        "RA": np.array(
+            [9.45, 35.57, 52.98, 150.11, 58.90, 63.60]
+        ),  # RA coords of DDF fields
+        "Dec": np.array(
+            [-44.02, -4.82, -28.12, 2.23, -49.32, -47.60]
+        ),  # Dec coords of DDF fields
+    }
 
     def __init__(
         self,
         db_path,
-        table_name="observations",
-        MJDrange=None,
+        mjd_range=None,
         host_file=None,
         host_config={},
     ):
@@ -67,7 +78,7 @@ class OpSimSurvey:
             The path to the Opsim db file
         table_name : str, optional
             Name of the observations table in the OpSIm db file, by default "observations"
-        MJDrange : (int, int) or (str,str), optional
+        mjd_range : (int, int) or (str,str), optional
             Min and Max date to query if float assumed to be mjd, by default None
         host_file : str, optional
             Path to a parquet file containg hosts, by default None
@@ -76,7 +87,7 @@ class OpSimSurvey:
         """
         self.db_path = Path(db_path)
         self.sql_engine = self._get_sql_engine(db_path)
-        self.opsimdf = self._get_df_from_sql(self.sql_engine, MJDrange=MJDrange)
+        self.opsimdf = self._get_df_from_sql(self.sql_engine, mjd_range=mjd_range)
         self.opsimdf.attrs["OpSimFile"] = self.db_path.name
 
         self.tree = BallTree(
@@ -112,14 +123,14 @@ class OpSimSurvey:
         return engine
 
     @staticmethod
-    def _get_df_from_sql(sql_engine, MJDrange=None):
+    def _get_df_from_sql(sql_engine, mjd_range=None):
         """Load data from the db file.
 
         Parameters
         ----------
         sql_engine : sqlalchemy.engine.base.Engine
             The sqlalchemy engine link to the db.
-        MJDrange :( , ) str or float, optional
+        mjd_range :( , ) str or float, optional
             Min and Max date to query if float assumed to be mjd, by default None
 
         Returns
@@ -129,13 +140,13 @@ class OpSimSurvey:
         """
         tstart = time.time()
         query = "SELECT * FROM observations"
-        if MJDrange is not None:
-            if isinstance(MJDrange, str):
+        if mjd_range is not None:
+            if isinstance(mjd_range, str):
                 time_format = None
             else:
                 time_format = "mjd"
-            MJDrange = Time(MJDrange, format=time_format)
-            query += f" WHERE observationStartMJD > {MJDrange.mjd[0]} AND observationStartMJD < {MJDrange[1].mjd}"
+            mjd_range = Time(mjd_range, format=time_format)
+            query += f" WHERE observationStartMJD > {mjd_range.mjd[0]} AND observationStartMJD < {mjd_range[1].mjd}"
 
         df = pd.read_sql(query, con=sql_engine)
         df["_ra"] = np.radians(df.fieldRA)
@@ -219,7 +230,9 @@ class OpSimSurvey:
         nside=256,
         minVisits=500,
         maxVisits=100_000,
-        field_label_rules={"labels": ["WFD", "DDF"], "nobs_thresh": [1100]},
+        ddf_nobs_thresh=1100,
+        add_ddf_tag=False,
+        angle_sep_tol=10,
     ):
         """Compute a healpy version of the survey.
 
@@ -263,21 +276,41 @@ class OpSimSurvey:
             self.hp_rep.attrs["nside"], degrees=False
         ) * len(self._hp_rep)
 
-        if field_label_rules is not None:
-            if (
-                len(field_label_rules["labels"])
-                != len(field_label_rules["nobs_thresh"]) + 1
+        field_labels = np.empty_like(self._hp_rep["n_visits"], dtype="U20")
+        ddf_mask = self._hp_rep["n_visits"] >= ddf_nobs_thresh
+
+        # WFD naming
+        field_labels[~ddf_mask] = "WFD"
+
+        # DDF naming
+        if add_ddf_tag:
+            angle_sep_to_field = np.empty(
+                (len(self.hp_rep["hp_ra"]), len(self.__LSST_DDF_TAGS__["TAGS"])),
+                dtype="float32",
+            )
+
+            for i, (R, D) in enumerate(
+                zip(self.__LSST_DDF_TAGS__["RA"], self.__LSST_DDF_TAGS__["Dec"])
             ):
-                raise ValueError(
-                    "'nobs_thresh' should contains len(labels) - 1 values'"
+                angle_sep_to_field.T[i] = ut.compute_angle_sep(
+                    self.hp_rep["hp_ra"].values,
+                    self.hp_rep["hp_dec"].values,
+                    np.deg2rad(R),
+                    np.deg2rad(D),
                 )
-            field_labels = np.empty_like(self._hp_rep["n_visits"], dtype="U5")
-            thresholds = [0, *field_label_rules["nobs_thresh"], np.inf]
-            for i, fname in enumerate(field_label_rules["labels"]):
-                mask = self._hp_rep["n_visits"] >= thresholds[i]
-                mask &= self._hp_rep["n_visits"] <= thresholds[i + 1]
-                field_labels[mask] = fname
-            self._hp_rep["field_label"] = field_labels
+            angle_sep_argmins = np.argmin(angle_sep_to_field, axis=1)
+            angle_sep_min = np.min(angle_sep_to_field, axis=1)
+            ddf_tags = np.char.add(
+                "DDF_", self.__LSST_DDF_TAGS__["TAGS"][angle_sep_argmins]
+            )
+            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = "DDF_UNKNOWN"
+        else:
+            ddf_tags = "DDF"
+
+        field_labels[ddf_mask] = ddf_tags
+
+        self._hp_rep["field_label"] = field_labels
+
         print(
             f"Finished compute healpy representation, total number of fields : {len(self._hp_rep)}."
         )
