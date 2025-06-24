@@ -51,9 +51,9 @@ class OpSimSurvey:
     __LSST_FIELD_RADIUS__ = np.radians(1.75)  # LSST Field Radius in radians
     __LSST_pixelSize__ = 0.2  # LSST Pixel size in arcsec^-1
     __LSST_DDF_TAGS__ = {
-        'TAGS': np.array(['ELAISS1', 'XMM_LSS', 'ECDFS', 'COSMOS', 'EDFS_a', 'EDFS_b']),
-        'RA': np.array([9.45, 35.71, 53.12, 150.10, 58.90, 63.60]),
-        'Dec': np.array([-44.00, -4.75, -28.10, 2.18, -49.32, -47.60])
+        'TAGS': np.array(['ELAISS1', 'XMM_LSS', 'ECDFS', 'COSMOS', 'EDFS_a', 'EDFS_b']), # Name of DDF fields
+        'RA': np.array([9.45, 35.71, 53.12, 150.10, 58.90, 63.60]), # RA coords of DDF fields
+        'Dec': np.array([-44.00, -4.75, -28.10, 2.18, -49.32, -47.60]) # Dec coords of DDF fields
         }
     
     def __init__(
