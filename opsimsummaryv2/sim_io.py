@@ -243,19 +243,19 @@ class SNANA_Simlib(SimWriter):
         return s
 
     def _init_dataline(self):
-        f = lambda expMJD, ObsID, BAND, SKYSIG, PSF, ZPT: ut.dataline(
-            expMJD,
-            ObsID,
-            BAND,
-            self.CCDgain,
-            self.CCDnoise,
-            SKYSIG,
-            PSF,
-            ZPT,
-            self.ZPTNoise,
+        return np.vectorize(
+            lambda expMJD, ObsID, BAND, SKYSIG, PSF, ZPT: ut.dataline(
+                expMJD,
+                ObsID,
+                BAND,
+                self.CCDgain,
+                self.CCDnoise,
+                SKYSIG,
+                PSF,
+                ZPT,
+                self.ZPTNoise,
+            )
         )
-
-        return np.vectorize(f)
 
     def LIBdata(self, opsimdf):
         """Give the string of a LIB entry.
