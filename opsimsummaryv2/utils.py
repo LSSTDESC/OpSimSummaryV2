@@ -14,9 +14,10 @@ except ImportError:
 
 
 def compute_angle_sep(ra_arr: np.array, dec_arr: np.array, ra: float, dec: float):
-    cos_theta = np.cos(ra_arr - ra) * np.cos(dec) * np.cos(dec_arr) 
+    cos_theta = np.cos(ra_arr - ra) * np.cos(dec) * np.cos(dec_arr)
     cos_theta += np.sin(dec) * np.sin(dec_arr)
     return np.arccos(np.clip(cos_theta, -1, 1))
+
 
 def format_poly(poly):
     """Fromat polygon that cross the 2 PI edge.
@@ -171,8 +172,8 @@ def read_SNANA_WGTMAP(file):
     ValueError
         No WGT key
     """
-    if file[-2:] == 'gz':
-        f = gzip.open(file, 'rt', encoding='utf-8')
+    if file[-2:] == "gz":
+        f = gzip.open(file, "rt", encoding="utf-8")
     else:
         f = open(file, "r")
 
@@ -269,7 +270,7 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
     ValueError
         _description_
     """
-    import requests         
+    import requests
     import time
 
     if output_dir is None:
@@ -281,7 +282,7 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
         output_dir = SNANA_LSST_ROOT + "/simlibs/"
 
     output_dir = Path(output_dir)
-    
+
     filename = f"baseline_v{version}_10yrs.db"
 
     url = f"https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs{version}/"
@@ -289,22 +290,22 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
 
     stime = time.time()
     url_file = requests.get(url, stream=True)
-    file_size = int(url_file.headers.get('Content-Length', None))
+    file_size = int(url_file.headers.get("Content-Length", None))
     block_size = 1024  # 1 KB
     n_chuncks = int(np.ceil(file_size / block_size))
     bar_size = 30
     with open(output_dir / filename, "wb") as file:
         for i, chunk in enumerate(url_file.iter_content(chunk_size=block_size)):
             file.write(chunk)
-            
-            x = i / n_chuncks 
+
+            x = i / n_chuncks
             bar_prog = int(x * bar_size)
             bar = f"[{u'='*bar_prog}{u'>' if (bar_prog < bar_size) else u'='}{u' '*(bar_size - bar_prog)}]"
             if i > 0:
-                remaining_time = ((time.time() - stime) / i) * (n_chuncks - i)   
-            else: 
-                remaining_time = 0 
-            if i%int(0.0005 * n_chuncks)==0 or x==1.:  
+                remaining_time = ((time.time() - stime) / i) * (n_chuncks - i)
+            else:
+                remaining_time = 0
+            if i % int(0.0005 * n_chuncks) == 0 or x == 1.0:
                 print(
                     (
                         f"\rDownloading {filename} {x * 100:05.2f}% {bar}"
