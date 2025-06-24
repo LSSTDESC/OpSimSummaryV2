@@ -34,6 +34,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--hp_nside", "-hpns", help="Nside resolution of healpy pixel.", default=256, type=int
+)
+
+
+parser.add_argument(
     "--min_visits", help="Minimum observation visits", default=500, type=int
 )
 
@@ -195,7 +200,7 @@ OpSimSurv = op.OpSimSurvey(
 
 # Compute healpy rep
 OpSimSurv.compute_hp_rep(
-    nside=256, 
+    nside=args.hp_nside, 
     minVisits=minVisits, 
     maxVisits=maxVisits,
     field_label_rules={"labels": ["WFD", "DDF"], "nobs_thresh": [args.wfd_ddf_nobs_thresh]}
