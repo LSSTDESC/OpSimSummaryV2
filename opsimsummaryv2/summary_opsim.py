@@ -291,7 +291,7 @@ class OpSimSurvey:
             angle_sep_argmins = np.argmin(angle_sep_to_field, axis=1)
             angle_sep_min =  np.min(angle_sep_to_field, axis=1)
             ddf_tags = np.char.add('DDF_' , self.__LSST_DDF_TAGS__['TAGS'][angle_sep_argmins])
-            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = 'DDF_NONE'
+            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = 'DDF_UNKNOW'
         else:
             ddf_tags = 'DDF'
         
