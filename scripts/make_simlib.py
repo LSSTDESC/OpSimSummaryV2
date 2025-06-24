@@ -45,8 +45,11 @@ parser.add_argument("--wfd_only", help="Only write WFD", action="store_true")
 
 parser.add_argument("--ddf_only", help="Only write WFD", action="store_true")
 
+parser.add_argument("--ddf_tags", help="Write DDF tags", action="store_true")
+
+
 parser.add_argument(
-    "--wfd_ddf_nobs_thresh",
+    "--ddf_nobs_thresh",
     help="Number of observations threshold between WFD and DDF fields",
     default=1100,
     type=int,
@@ -162,21 +165,21 @@ MJDrange = [args.min_MJD, args.max_MJD]
 minVisits = args.min_visits
 maxVisits = args.max_visits
 NOTES["WARNING_NOTICE"] = (
-    f"DDF approximately determined by nobs>={args.wfd_ddf_nobs_thresh}"
+    f"DDF approximately determined by nobs>={args.ddf_nobs_thresh}"
 )
 
 file_suffix = "_all"
 if args.wfd_only and args.ddf_only:
     raise ValueError("wfd_only and ddf_only options can not be set at the same time")
 elif args.wfd_only:
-    print(f"Replace max_visits by WFD/DDF threshold: nobs < {args.wfd_ddf_nobs_thresh}")
-    maxVisits = args.wfd_ddf_nobs_thresh
+    print(f"Replace max_visits by WFD/DDF threshold: nobs < {args.ddf_nobs_thresh}")
+    maxVisits = args.ddf_nobs_thresh
     file_suffix = "_WFD"
 elif args.ddf_only:
     print(
-        f"Replace min_visits by WFD/DDF threshold: nobs >= {args.wfd_ddf_nobs_thresh}"
+        f"Replace min_visits by WFD/DDF threshold: nobs >= {args.ddf_nobs_thresh}"
     )
-    minVisits = args.wfd_ddf_nobs_thresh
+    minVisits = args.ddf_nobs_thresh
     file_suffix = "_DDF"
 
 
@@ -198,7 +201,8 @@ OpSimSurv.compute_hp_rep(
     nside=256, 
     minVisits=minVisits, 
     maxVisits=maxVisits,
-    field_label_rules={"labels": ["WFD", "DDF"], "nobs_thresh": [args.wfd_ddf_nobs_thresh]}
+    ddf_nobs_thresh=args.ddf_nobs_thresh,
+    add_ddf_tag=args.ddf_tags
     )
 
 # Sample survey
