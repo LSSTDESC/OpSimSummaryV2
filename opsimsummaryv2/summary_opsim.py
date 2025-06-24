@@ -65,8 +65,7 @@ class OpSimSurvey:
     def __init__(
         self,
         db_path,
-        table_name="observations",
-        MJDrange=None,
+        mjd_range=None,
         host_file=None,
         host_config={},
     ):
@@ -78,7 +77,7 @@ class OpSimSurvey:
             The path to the Opsim db file
         table_name : str, optional
             Name of the observations table in the OpSIm db file, by default "observations"
-        MJDrange : (int, int) or (str,str), optional
+        mjd_range : (int, int) or (str,str), optional
             Min and Max date to query if float assumed to be mjd, by default None
         host_file : str, optional
             Path to a parquet file containg hosts, by default None
@@ -87,7 +86,7 @@ class OpSimSurvey:
         """
         self.db_path = Path(db_path)
         self.sql_engine = self._get_sql_engine(db_path)
-        self.opsimdf = self._get_df_from_sql(self.sql_engine, MJDrange=MJDrange)
+        self.opsimdf = self._get_df_from_sql(self.sql_engine, mjd_range=mjd_range)
         self.opsimdf.attrs["OpSimFile"] = self.db_path.name
 
         self.tree = BallTree(
@@ -123,14 +122,14 @@ class OpSimSurvey:
         return engine
 
     @staticmethod
-    def _get_df_from_sql(sql_engine, MJDrange=None):
+    def _get_df_from_sql(sql_engine, mjd_range=None):
         """Load data from the db file.
 
         Parameters
         ----------
         sql_engine : sqlalchemy.engine.base.Engine
             The sqlalchemy engine link to the db.
-        MJDrange :( , ) str or float, optional
+        mjd_range :( , ) str or float, optional
             Min and Max date to query if float assumed to be mjd, by default None
 
         Returns
@@ -140,13 +139,13 @@ class OpSimSurvey:
         """
         tstart = time.time()
         query = "SELECT * FROM observations"
-        if MJDrange is not None:
-            if isinstance(MJDrange, str):
+        if mjd_range is not None:
+            if isinstance(mjd_range, str):
                 time_format = None
             else:
                 time_format = "mjd"
-            MJDrange = Time(MJDrange, format=time_format)
-            query += f" WHERE observationStartMJD > {MJDrange.mjd[0]} AND observationStartMJD < {MJDrange[1].mjd}"
+            mjd_range = Time(mjd_range, format=time_format)
+            query += f" WHERE observationStartMJD > {mjd_range.mjd[0]} AND observationStartMJD < {mjd_range[1].mjd}"
 
         df = pd.read_sql(query, con=sql_engine)
         df["_ra"] = np.radians(df.fieldRA)
