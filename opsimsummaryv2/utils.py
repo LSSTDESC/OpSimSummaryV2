@@ -14,6 +14,24 @@ except ImportError:
 
 
 def compute_angle_sep(ra_arr: np.array, dec_arr: np.array, ra: float, dec: float):
+    """Compute angle separation
+
+    Parameters
+    ----------
+    ra_arr : np.array
+        array of RA coords
+    dec_arr : np.array
+        array of Dec coords
+    ra : float
+        the RA coord of the reference angle with which compute the separation
+    dec : float
+        the Dec coord of the reference angle with which compute the separation
+
+    Returns
+    -------
+    np.array
+        angle separation
+    """    
     cos_theta = np.cos(ra_arr - ra) * np.cos(dec) * np.cos(dec_arr)
     cos_theta += np.sin(dec) * np.sin(dec_arr)
     return np.arccos(np.clip(cos_theta, -1, 1))
