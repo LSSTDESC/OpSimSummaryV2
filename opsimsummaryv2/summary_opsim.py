@@ -50,6 +50,7 @@ class OpSimSurvey:
 
     __LSST_FIELD_RADIUS__ = np.radians(1.75)  # LSST Field Radius in radians
     __LSST_pixelSize__ = 0.2  # LSST Pixel size in arcsec^-1
+    # DDF from https://survey-strategy.lsst.io/baseline/ddf.html
     __LSST_DDF_TAGS__ = {
         "TAGS": np.array(
             ["ELAISS1", "XMM_LSS", "ECDFS", "COSMOS", "EDFS_a", "EDFS_b"]
