@@ -164,7 +164,7 @@ if not db_file.exists():
         )
 
 # MJD RANGE
-MJDrange = [args.min_MJD, args.max_MJD]
+mjd_range = [args.min_MJD, args.max_MJD]
 
 # SET MIN AND MAX VISITS
 minVisits = args.min_visits
@@ -198,7 +198,7 @@ if args.snana_wgtmap is not None:
     host_config["wgt_map"] = args.snana_wgtmap
 
 OpSimSurv = op.OpSimSurvey(
-    str(db_file), MJDrange=MJDrange, host_file=args.host_file, host_config=host_config
+    str(db_file), mjd_range=mjd_range, host_file=args.host_file, host_config=host_config
 )
 
 # Compute healpy rep
