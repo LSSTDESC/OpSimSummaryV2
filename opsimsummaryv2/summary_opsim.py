@@ -55,10 +55,10 @@ class OpSimSurvey:
             ["ELAISS1", "XMM_LSS", "ECDFS", "COSMOS", "EDFS_a", "EDFS_b"]
         ),  # Name of DDF fields
         "RA": np.array(
-            [9.45, 35.71, 53.12, 150.10, 58.90, 63.60]
+            [9.45, 35.57, 52.98, 150.11, 58.90, 63.60]
         ),  # RA coords of DDF fields
         "Dec": np.array(
-            [-44.00, -4.75, -28.10, 2.18, -49.32, -47.60]
+            [-44.02, -4.82, -28.12, 2.23, -49.32, -47.60]
         ),  # Dec coords of DDF fields
     }
 
@@ -303,7 +303,7 @@ class OpSimSurvey:
             ddf_tags = np.char.add(
                 "DDF_", self.__LSST_DDF_TAGS__["TAGS"][angle_sep_argmins]
             )
-            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = "DDF_UNKNOW"
+            ddf_tags[np.degrees(angle_sep_min) > angle_sep_tol] = "DDF_UNKNOWN"
         else:
             ddf_tags = "DDF"
 
