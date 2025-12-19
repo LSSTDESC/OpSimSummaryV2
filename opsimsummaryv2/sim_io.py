@@ -1,12 +1,13 @@
 """Class to write simulations input files."""
 
-import os
-import sys
-import time
 import datetime
+import os
+import time
 from pathlib import Path
-import yaml
+
 import numpy as np
+import yaml
+
 import opsimsummaryv2 as oss
 
 try:
@@ -430,9 +431,9 @@ class SNANA_Simlib(SimWriter):
             hostf.write(self.get_HOSTLIB_header(hostdf))
             columns = hostdf.columns.values
             columns = np.insert(columns, 0, "VARNAMES: ")
-            hostdf["VARNAMES: "] = "GAL: "
+            hostdf["VARNAMES: "] = "GAL:"
             hostdf[columns].to_csv(
-                hostf, sep=" ", index=False, quoting=csv.QUOTE_NONE, escapechar=" "
+                hostf, sep=" ", index=False, quoting=csv.QUOTE_NONE, escapechar="\t"
             )
 
 

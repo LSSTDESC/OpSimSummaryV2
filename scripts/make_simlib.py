@@ -154,7 +154,10 @@ if not db_file.exists():
     elif args.download:
         import re
 
-        version = re.findall("v([0-9].[0-9])", db_file.name)[0]
+        version = re.findall(
+            re.compile(r"v(\d+(?:\.\d+)*)(?=(?:$|[^0-9.]|\.(?=[A-Za-z])))"),
+            db_file.name)[0]
+
         print(f'Downloading OpSim output v{version}')
         op.utils.download_rubinlsst_baseline_dbfile(version, output_dir=str(output_dir))
         db_file = output_dir / f"baseline_v{version}_10yrs.db"
@@ -203,8 +206,8 @@ OpSimSurv = op.OpSimSurvey(
 
 # Compute healpy rep
 OpSimSurv.compute_hp_rep(
-    nside=args.hp_nside, 
-    minVisits=minVisits, 
+    nside=args.hp_nside,
+    minVisits=minVisits,
     maxVisits=maxVisits,
     ddf_nobs_thresh=args.ddf_nobs_thresh,
     add_ddf_tag=args.ddf_tags
@@ -225,10 +228,10 @@ sim.write_SIMLIB(write_batch_size=100)
 
 if args.simlib_coadd:
     import subprocess
-    
+
     print('\n\n#################\n\n')
     print('Executing simlib_coadd.exe')
-    
+
     SNANA_DIR = os.getenv("SNANA_DIR")
     if SNANA_DIR is None:
         raise ValueError("$SNANA_DIR need to be defined to use coadd")

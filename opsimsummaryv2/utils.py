@@ -1,7 +1,9 @@
 """This module contains usefull functions."""
 
-import numpy as np
 import gzip
+from pathlib import Path
+
+import numpy as np
 
 try:
     import geopandas as gpd
@@ -31,7 +33,7 @@ def compute_angle_sep(ra_arr: np.array, dec_arr: np.array, ra: float, dec: float
     -------
     np.array
         angle separation
-    """    
+    """
     cos_theta = np.cos(ra_arr - ra) * np.cos(dec) * np.cos(dec_arr)
     cos_theta += np.sin(dec) * np.sin(dec_arr)
     return np.arccos(np.clip(cos_theta, -1, 1))
@@ -288,8 +290,9 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
     ValueError
         _description_
     """
-    import requests
     import time
+
+    import requests
 
     if output_dir is None:
         import os
@@ -303,8 +306,8 @@ def download_rubinlsst_baseline_dbfile(version, output_dir=None):
 
     filename = f"baseline_v{version}_10yrs.db"
 
-    url = f"https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs{version}/"
-    url += f"baseline/" + filename
+    url = f"https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs{version[:3]}/"
+    url += "baseline/" + filename
 
     stime = time.time()
     url_file = requests.get(url, stream=True)
