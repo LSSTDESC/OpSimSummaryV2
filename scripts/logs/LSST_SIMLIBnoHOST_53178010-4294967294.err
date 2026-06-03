@@ -1,0 +1,2 @@
+/var/spool/slurmd/job53178010/slurm_script: line 21: 1755199 Killed                  python /pscratch/sd/b/bastienc/Soft/OpSimSummaryV2/scripts/make_simlib.py '/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/noroll_v5.0.0_10yrs.db' --output_dir '/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/' --author 'bastienc'
+[2026-05-19T19:24:32.737] error: Detected 1 oom_kill event in StepId=53178010.batch. Some of the step tasks have been OOM Killed.

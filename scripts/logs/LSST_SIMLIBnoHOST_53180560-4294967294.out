@@ -1,0 +1,61 @@
+HEADER_ADD: This coadd SIMLIB was created with command
+HEADER_ADD:    ' /global/cfs/cdirs/lsst/groups/TD/SOFTWARE/SNANA/bin/simlib_coadd.exe /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs_all.SIMLIB SORT_BAND ' 
+HEADER_ADD: and the following co-add cuts/options:
+HEADER_ADD:    + Select LIBID between 0 and 1000000
+HEADER_ADD:    + Reject LIBID with < 3 exposures
+HEADER_ADD:    + Combine consecutive exposures within 0.400 days
+HEADER_ADD:    + Multiple exposures are 'SUMMED' 
+
+ SIMLIB_open_read(): 
+ 	 Opened : /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs_all.SIMLIB 
+	 Opened /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs_all.SIMLIB 
+ Found header line: DOCUMENTATION:
+ Found header line:     PURPOSE: simulate LSST based on mock opsim version baseline_v5.3.0_10yrs.db Found header line: 
+ Found header line:     INTENT:   Nominal
+ Found header line:     USAGE_KEY: SIMLIB_FILE
+ Found header line:     USAGE_CODE: snlc_sim.exe
+ Found header line:     VALIDATION_SCIENCE: 
+ Found header line:     NOTES: 
+ Found header line:         PARAMS MINMJD: 61208.2014
+ Found header line:         PARAMS MAXMJD: 64860.4449
+ Found header line:         PARAMS TOTAL_AREA: 20248.484
+ Found header line:         PARAMS SOLID_ANGLE: 6.168
+ Found header line:         COMMAND: ['make_simlib.py', '/pscratch/sd/d/desctd/cfs_mirror/SNANA/SUR Found header line: VEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs.db', '--output_dir', '/pscratch/sd Found header line: /d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/', '--author', 'bastienc', Found header line:  '--simlib_coadd']
+ Found header line:         WARNING_NOTICE: DDF approximately determined by nobs>=1100
+ Found header line:     VERSIONS:
+ Found header line:     - DATE : 26-05-19
+ Found header line:     AUTHORS : bastienc, OpSimSummaryV2 version 0.1
+ Found header line: DOCUMENTATION_END:
+ Found header line: 
+ Found header line: 
+ Found header line: 
+ Found header line: SURVEY: LSST   FILTERS: ugrizY  TELESCOPE: LSST
+ Found SIMLIB_FILTERS: ugrizY 
+ Found header line: USER: NONE     HOST: nid004072
+ Found header line: NLIBID: 50000
+ Found header line: NPE_PIXEL_SATURATE:   100000
+ Found header line: PHOTFLAG_SATURATE:    1024
+ Found header line: 
+ Found header line: 
+ Found header line: BEGIN LIBGEN
+	 Opened /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs_all.SIMLIB.COADD 
+
+ Insert 'NLIBID: 50000' after SURVEY line in header.
+  Coadd NOBS Range: 500 to 47948 
+  Coadd MJD Range: 61208.2 to 64860.4 
+
+ Done coadding 50000 LIBIDs (1600741223 read) 
+Reading from database sqlite:////pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs.db
+Read N = 1844571 observations in 31.39 seconds.
+No host file.
+Finished compute healpy representation, total number of fields : 386010.
+Writing SIMLIB in /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs_all.SIMLIB
+SIMLIB wrote in 288.73 sec.
+
+
+
+#################
+
+
+Executing simlib_coadd.exe
+Return code: 0

@@ -152,6 +152,8 @@ class OpSimSurvey:
         df["_ra"] = np.radians(df.fieldRA)
         df["_dec"] = np.radians(df.fieldDec)
         df.set_index("observationId", inplace=True)
+        df["filter"] = df["filter"].str.extract(r'([a-zA-Z]+)') # Added to correct for v5.3 format...
+
         print(f"Read N = {len(df)} observations in {time.time() - tstart:.2f} seconds.")
         return df.sort_values(by="observationStartMJD")
 

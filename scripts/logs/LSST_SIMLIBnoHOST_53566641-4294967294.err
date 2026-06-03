@@ -1,0 +1,2 @@
+/global/homes/b/bastienc/.miniconda3/envs/OpsimSummary/lib/python3.13/site-packages/opsimsummaryv2/summary_opsim.py:506: SyntaxWarning: invalid escape sequence '\s'
+  The :math:`\sigma_\mathrm{PSF}` in units of :math:`\mathrm{arcsec}^{-1}` is obtained as

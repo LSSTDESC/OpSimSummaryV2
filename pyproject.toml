@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opsimsummaryv2"
+dynamic = ["version"]
+authors = [{name = "Bastien Carreres", email = "bastien.carreres@duke.edu"}]
+description = "Turn OpSim output to SNANA SIMLIB inputs"
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.9"
+dependencies = [
+    "pandas",
+    "numpy<2.0.0",
+    "scikit-learn",
+    "sqlalchemy",
+    "healpy",
+    "astropy",
+]
+
+[project.optional-dependencies]
+docs = [
+    "markdown",
+    "sphinx>=5.2.3",
+    "sphinx-markdown-tables>=0.0.15",
+    "numpydoc",
+    "sphinx_book_theme",
+    "myst-parser",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-inline-tabs",
+    "sphinx-tabs",
+    "sphinx-autoapi",
+]
+pqt = ["pyarrow"]
+hostmatch = ["geopandas"]
+
+[project.scripts]
+make-simlib = "opsimsummaryv2._cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "opsimsummaryv2.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opsimsummaryv2*"]

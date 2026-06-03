@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH -J LSSTSIMLIBnoHOST
+#SBATCH -A m1727
+#SBATCH --qos=shared
+#SBATCH --constraint=cpu
+#SBATCH --time=01:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8GB
+#SBATCH -e ./logs/LSST_SIMLIBnoHOST_%A-%a.err
+#SBATCH -o  ./logs/LSST_SIMLIBnoHOST_%A-%a.out
+
+source ~/.bashrc
+conda activate OpsimSummary
+
+python /pscratch/sd/b/bastienc/Soft/OpSimSummaryV2/scripts/make_simlib.py \
+'/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/desi_3040_v5.3.0_10yrs.db' \
+--output_dir '/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/' \
+--author 'mvincenz' \
+--simlib_coadd
+
+python /pscratch/sd/b/bastienc/Soft/OpSimSummaryV2/scripts/make_simlib.py \
+'/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/baseline_v5.3.0_10yrs.db' \
+--output_dir '/pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/' \
+--author 'bcarreres' \
+--simlib_coadd

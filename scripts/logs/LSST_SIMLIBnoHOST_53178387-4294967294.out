@@ -1,0 +1,7 @@
+Reading from database sqlite:////pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/noroll_v5.0.0_10yrs.db
+Read N = 2049361 observations in 37.74 seconds.
+No host file.
+Finished compute healpy representation, total number of fields : 390024.
+Writing SIMLIB in /pscratch/sd/d/desctd/cfs_mirror/SNANA/SURVEYS/LSST/ROOT/simlibs/noroll_v5.0.0_10yrs_all.SIMLIB
+SIMLIB wrote in 311.47 sec.
+
